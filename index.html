@@ -1,558 +1,1246 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>战车割草大作战</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020617;color:#fff;font-family:Arial,"Microsoft YaHei",sans-serif}
-button{font-family:inherit}
-#game{position:fixed;inset:0}
-#game canvas{display:block}
-.glass{background:rgba(15,23,42,.78);backdrop-filter:blur(12px);border:1px solid rgba(148,163,184,.2)}
-#menu,#gameover,#pause,#book,#garage,#levelup{position:fixed;inset:0;z-index:20}
-.hidden{display:none!important}
-.card{background:rgba(15,23,42,.82);border:1px solid rgba(148,163,184,.2);border-radius:18px}
-.vehicle{transition:.2s;cursor:pointer}
-.vehicle:hover{transform:translateY(-3px);border-color:#38bdf8}
-.vehicle.selected{border-color:#22d3ee;box-shadow:0 0 25px rgba(34,211,238,.2)}
-#hud{position:fixed;top:0;left:0;right:0;z-index:10;pointer-events:none}
-.hudbox{background:rgba(2,6,23,.75);backdrop-filter:blur(10px);border:1px solid rgba(148,163,184,.18)}
-#joystick{position:fixed;left:25px;bottom:25px;width:125px;height:125px;border-radius:50%;z-index:15;background:rgba(30,41,59,.55);border:2px solid rgba(148,163,184,.35);touch-action:none}
-#stick{position:absolute;width:55px;height:55px;left:33px;top:33px;border-radius:50%;background:rgba(34,211,238,.65);border:2px solid rgba(255,255,255,.4)}
-#attackHint{position:fixed;right:20px;bottom:28px;z-index:12;pointer-events:none}
-.preview{height:105px;position:relative;overflow:hidden;border-radius:14px;background:linear-gradient(#0f172a,#020617)}
-::-webkit-scrollbar{width:7px}::-webkit-scrollbar-thumb{background:#334155;border-radius:10px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malaysia UASA & KSSR Primary Quiz Adventure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'Fredoka', 'sans-serif'],
+                        game: ['Fredoka', 'Noto Sans SC', 'sans-serif'],
+                    },
+                    colors: {
+                        sjkc: { 500: '#ef4444', 600: '#dc2626' },
+                        sk: { 500: '#3b82f6', 600: '#2563eb' },
+                        sjkt: { 500: '#10b981', 600: '#059669' },
+                    },
+                    animation: {
+                        'bounce-short': 'bounce 0.5s ease-in-out 2',
+                        'pulse-glow': 'pulseGlow 2s infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(234, 179, 8, 0.6))' },
+                            '50%': { filter: 'drop-shadow(0 0 25px rgba(234, 179, 8, 0.9))' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans SC', 'Fredoka', sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.88);
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </head>
-<body>
-<div id="game"></div>
+<body class="h-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
 
-<!-- HUD -->
-<div id="hud" class="hidden p-3">
-  <div class="max-w-5xl mx-auto flex flex-wrap gap-2 items-center">
-    <div class="hudbox rounded-xl px-3 py-2 text-xs min-w-[130px]">
-      <div class="flex justify-between"><span>等级</span><b id="level">1</b></div>
-      <div class="h-2 bg-slate-700 rounded mt-1"><div id="expbar" class="h-2 bg-cyan-400 rounded" style="width:0%"></div></div>
-    </div>
-    <div class="hudbox rounded-xl px-3 py-2 text-xs">⏱️ <b id="time">00:00</b></div>
-    <div class="hudbox rounded-xl px-3 py-2 text-xs">🌱 <b id="kills">0</b></div>
-    <div class="hudbox rounded-xl px-3 py-2 text-xs">🪙 <b id="coins">0</b></div>
-    <div class="hudbox rounded-xl px-3 py-2 text-xs">❤️ <b id="hp">100</b></div>
-    <button id="pauseBtn" class="pointer-events-auto ml-auto hudbox rounded-xl px-4 py-2 hover:bg-slate-700">Ⅱ</button>
-  </div>
-  <div id="bossBar" class="hidden max-w-xl mx-auto mt-2 hudbox rounded-xl p-2">
-    <div class="text-center text-red-300 text-xs font-black" id="bossName">BOSS</div>
-    <div class="h-3 bg-slate-800 rounded mt-1"><div id="bossHp" class="h-3 bg-red-500 rounded" style="width:100%"></div></div>
-  </div>
-</div>
+    <!-- Canvas for Particle Effects -->
+    <canvas id="effectsCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
 
-<!-- MENU -->
-<div id="menu" class="flex items-center justify-center p-4 overflow-auto">
-  <div class="w-full max-w-5xl glass rounded-3xl p-5 md:p-8 shadow-2xl">
-    <div class="text-center">
-      <div class="text-cyan-400 text-xs font-black tracking-[.4em]">3D SURVIVAL</div>
-      <h1 class="text-4xl md:text-6xl font-black mt-2">战车割草大作战</h1>
-      <p class="text-slate-400 mt-2">驾驶战车，割掉变异草怪，成为草场最强王者！</p>
-    </div>
+    <header class="w-full bg-slate-900/90 border-b border-slate-800 px-3 md:px-4 py-3 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto flex justify-between items-center gap-2">
+            <div class="flex items-center space-x-2 md:space-x-3 cursor-pointer" onclick="game.resetToHome()">
+                <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center shadow-lg shadow-yellow-500/30 shrink-0">
+                    <i class="fa-solid font-bold fa-graduation-cap text-slate-900 text-lg md:text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base md:text-xl text-yellow-400 tracking-wide font-game leading-tight" id="i18n-appName">UASA Primary Quiz Adventure</h1>
+                    <p class="text-[11px] md:text-xs text-slate-400 hidden sm:block" id="i18n-appSubtitle">Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)</p>
+                </div>
+            </div>
 
-    <div class="mt-6 card p-4">
-      <div class="flex justify-between items-center mb-3">
-        <h2 class="font-black">🚗 选择战车</h2>
-        <span class="text-xs text-slate-500">金币：<b id="menuCoins">0</b></span>
-      </div>
-      <div id="vehicles" class="grid grid-cols-2 md:grid-cols-3 gap-3"></div>
-    </div>
+            <!-- Top Controls -->
+            <div class="flex items-center space-x-2 md:space-x-3">
+                <div class="relative flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2 py-1 text-xs md:text-sm text-slate-200">
+                    <i class="fa-solid fa-globe text-yellow-400 mr-1.5"></i>
+                    <select id="langSelector" onchange="game.changeLanguage(this.value)" class="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer pr-1">
+                        <option value="en" class="bg-slate-900 text-white">English</option>
+                        <option value="ms" class="bg-slate-900 text-white">Bahasa Melayu</option>
+                        <option value="zh" class="bg-slate-900 text-white">华文 (ZH)</option>
+                    </select>
+                </div>
 
-    <div class="flex flex-col md:flex-row gap-3 justify-center mt-5">
-      <button id="startBtn" class="rounded-2xl px-8 py-4 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black text-lg shadow-lg">🚜 出击割草</button>
-      <button id="garageBtn" class="rounded-2xl px-8 py-4 bg-slate-800 hover:bg-slate-700 font-black">🔧 零件改装升级</button>
-      <button id="bookBtn" class="rounded-2xl px-8 py-4 bg-purple-600 hover:bg-purple-500 font-black">📖 怪物图鉴</button>
-    </div>
-  </div>
-</div>
+                <div id="topStatsBar" class="hidden flex items-center space-x-3 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
+                    <div class="flex items-center space-x-1 text-yellow-400 font-bold text-xs md:text-sm">
+                        <i class="fa-solid fa-star"></i>
+                        <span id="playerStars">0</span>
+                    </div>
+                    <div class="h-3.5 w-[1px] bg-slate-700"></div>
+                    <div class="flex items-center space-x-1 text-emerald-400 font-bold text-xs md:text-sm">
+                        <i class="fa-solid fa-trophy"></i>
+                        <span id="playerScore">0</span>
+                    </div>
+                    <div class="h-3.5 w-[1px] bg-slate-700"></div>
+                    <button onclick="audioManager.toggleMute()" class="text-slate-400 hover:text-white transition">
+                        <i id="muteBtnIcon" class="fa-solid fa-volume-high text-xs md:text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
 
-<!-- GARAGE -->
-<div id="garage" class="hidden flex items-center justify-center p-4">
- <div class="glass rounded-3xl p-5 w-full max-w-2xl max-h-[90vh] overflow-auto">
-  <div class="flex justify-between items-center"><h2 class="text-2xl font-black">🔧 零件改装升级</h2><button onclick="closeGarage()" class="text-2xl">×</button></div>
-  <p class="text-slate-400 text-sm mt-1">升级零件会永久保存。</p>
-  <div id="parts" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4"></div>
- </div>
-</div>
+    <main class="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center items-center relative z-10">
+        
+        <!-- STEP 0: INITIAL LANGUAGE SELECTION (FIRST SCREEN) -->
+        <section id="step0-language" class="w-full max-w-2xl glass-card rounded-3xl p-6 md:p-10 shadow-2xl transition-all duration-300 text-center animate-fade-in">
+            <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-yellow-400 to-amber-500 flex items-center justify-center text-4xl shadow-xl shadow-yellow-500/20 mb-6">
+                🌐
+            </div>
 
-<!-- BOOK -->
-<div id="book" class="hidden flex items-center justify-center p-3">
- <div class="glass rounded-3xl p-5 w-full max-w-6xl max-h-[94vh] overflow-auto">
-  <div class="flex justify-between items-center">
-   <div><h2 class="text-2xl font-black">📖 怪物图鉴</h2><p class="text-slate-400 text-xs mt-1">六种原创怪物 + 原版BOSS</p></div>
-   <button onclick="closeBook()" class="text-2xl">×</button>
-  </div>
-  <div id="bookList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4"></div>
- </div>
-</div>
+            <span class="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
+                UASA Standard Syllabus 🇲🇾
+            </span>
 
-<!-- LEVEL UP -->
-<div id="levelup" class="hidden flex items-center justify-center p-4">
- <div class="glass rounded-3xl p-5 w-full max-w-2xl">
-  <h2 class="text-3xl font-black text-center">⬆️ 等级提升！</h2>
-  <p class="text-center text-slate-400 mt-1">选择一个强化</p>
-  <div id="skills" class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-5"></div>
- </div>
-</div>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-white font-game mb-3 leading-tight">
+                Which language would you like to use?
+            </h2>
+            <p class="text-slate-300 text-sm md:text-base mb-8">
+                Please select your preferred language for the UASA (Ujian Akhir Sesi Akademik) practice experience:
+            </p>
 
-<!-- PAUSE -->
-<div id="pause" class="hidden flex items-center justify-center p-4">
- <div class="glass rounded-3xl p-8 text-center w-full max-w-sm">
-  <h2 class="text-3xl font-black">游戏暂停</h2>
-  <button id="resumeBtn" class="mt-5 w-full rounded-xl bg-cyan-500 text-slate-950 font-black py-3">继续游戏</button>
-  <button id="quitBtn" class="mt-3 w-full rounded-xl bg-slate-800 font-black py-3">回到主菜单</button>
- </div>
-</div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <button onclick="game.setInitialLanguage('en')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-yellow-400 hover:bg-yellow-500/10 transition-all flex flex-col items-center justify-center shadow-md">
+                    <span class="text-3xl mb-2">🇬🇧</span>
+                    <span class="font-bold text-white group-hover:text-yellow-400 text-base">English</span>
+                    <span class="text-xs text-slate-400 mt-0.5">Primary English</span>
+                </button>
 
-<!-- GAME OVER -->
-<div id="gameover" class="hidden flex items-center justify-center p-4">
- <div class="glass rounded-3xl p-8 text-center w-full max-w-sm">
-  <div class="text-5xl">🌱💥</div>
-  <h2 class="text-3xl font-black mt-3">割草结束</h2>
-  <div class="mt-5 space-y-2 text-slate-300">
-   <div>生存时间：<b id="finalTime">00:00</b></div>
-   <div>割草量：<b id="finalKills">0</b></div>
-   <div>获得金币：<b id="finalCoins">0</b></div>
-  </div>
-  <button id="againBtn" class="mt-6 w-full rounded-xl bg-cyan-500 text-slate-950 font-black py-3">再来一局</button>
-  <button id="menuBtn" class="mt-3 w-full rounded-xl bg-slate-800 font-black py-3">主菜单</button>
- </div>
-</div>
+                <button onclick="game.setInitialLanguage('ms')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-blue-400 hover:bg-blue-500/10 transition-all flex flex-col items-center justify-center shadow-md">
+                    <span class="text-3xl mb-2">🇲🇾</span>
+                    <span class="font-bold text-white group-hover:text-blue-400 text-base">Bahasa Melayu</span>
+                    <span class="text-xs text-slate-400 mt-0.5">Bahasa Kebangsaan</span>
+                </button>
 
-<div id="joystick" class="hidden"><div id="stick"></div></div>
-<div id="attackHint" class="hidden text-xs text-slate-300 bg-slate-950/60 px-3 py-2 rounded-xl">自动攻击中 ⚔️</div>
+                <button onclick="game.setInitialLanguage('zh')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-red-400 hover:bg-red-500/10 transition-all flex flex-col items-center justify-center shadow-md">
+                    <span class="text-3xl mb-2">🇨🇳</span>
+                    <span class="font-bold text-white group-hover:text-red-400 text-base">华文 (Chinese)</span>
+                    <span class="text-xs text-slate-400 mt-0.5">SJK(C) 华小学具</span>
+                </button>
+            </div>
+        </section>
 
-<script>
-/* =========================
-   基础资料
-========================= */
-const VEHICLES=[
- {id:'aurora',name:'旋风极光1号',price:0,hp:130,speed:10.5,weapon:'环绕切刀',desc:'高速均衡型'},
- {id:'crusher',name:'粉碎霸王车',price:200,hp:220,speed:8.8,weapon:'震荡波环',desc:'高血量重装型'},
- {id:'speed',name:'疾光激光猎手',price:350,hp:95,speed:13.5,weapon:'高能激光',desc:'极限速度型'},
- {id:'flamer',name:'烈焰焚草机',price:500,hp:160,speed:9.8,weapon:'高温喷火',desc:'范围攻击型'},
- {id:'tesla',name:'特斯拉磁爆号',price:750,hp:140,speed:10.2,weapon:'高压电弧',desc:'连锁攻击型'},
- {id:'quantum',name:'量子收割机',price:1000,hp:150,speed:11.8,weapon:'巡航无人机',desc:'自动追踪型'}
-];
+        <!-- STEP 1: WELCOME & PROFILE SETUP -->
+        <section id="step1-setup" class="w-full glass-card rounded-3xl p-5 md:p-8 shadow-2xl transition-all duration-300 hidden">
+            <div class="text-center mb-6">
+                <span class="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-semibold mb-2" id="i18n-badgeKssr">
+                    🇲🇾 Format UASA & KSSR Semakan Aligned
+                </span>
+                <h2 class="text-2xl md:text-4xl font-extrabold text-white font-game tracking-wider" id="i18n-heroSetupTitle">Create Your Learning Hero</h2>
+                <p class="text-slate-400 text-sm mt-1" id="i18n-heroSetupDesc">Select your school stream and standard to begin!</p>
+            </div>
 
-const PARTS=[
- {id:'engine',name:'引擎',desc:'提升移动速度',base:80},
- {id:'blade',name:'切割器',desc:'提升攻击伤害',base:100},
- {id:'armor',name:'装甲',desc:'提升最大生命',base:100},
- {id:'magnet',name:'磁力器',desc:'扩大经验吸收范围',base:90},
- {id:'cooler',name:'冷却器',desc:'提升攻击频率',base:120},
- {id:'tires',name:'越野轮胎',desc:'提升加速能力',base:110}
-];
+            <div class="space-y-6">
+                <!-- 1. School Type Selection -->
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-schoolTypeLabel">
+                        <i class="fa-solid fa-school text-indigo-400"></i> Select School Stream (Jenis Sekolah):
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <button type="button" onclick="game.selectSchool('SJKC')" id="school-SJKC" 
+                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-red-500 transition text-left relative overflow-hidden group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xl font-bold">
+                                    华小
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white group-hover:text-red-400">SJK(C)</div>
+                                    <div class="text-xs text-slate-400">华文, BM, BI, Math, Sains</div>
+                                </div>
+                            </div>
+                        </button>
 
-const MONSTERS={
- safety:{
-  name:'安全帽瓜瓜菌',icon:'🪖',type:'高防御',hp:130,speed:3.2,damage:16,exp:6,drop:'25%',
-  desc:'绿色长身体的小怪物，戴着黄色安全帽，拿着小铲子，是非常耐打的工地菌。',color:0x22c55e
- },
- purple:{
-  name:'打工紫球菌',icon:'💼',type:'群体攻击',hp:38,speed:5.1,damage:9,exp:4,drop:'20%',
-  desc:'带着公文包的紫色圆球菌，喜欢三五成群地追赶战车。',color:0xa855f7
- },
- yellow:{
-  name:'黄嘟嘟球菌',icon:'🟡',type:'高速大量',hp:22,speed:9.2,damage:7,exp:3,drop:'15%',
-  desc:'小小的黄色圆球菌，速度极快，经常成群出现。',color:0xfacc15
- },
- blue:{
-  name:'旋风蓝螺旋',icon:'🌀',type:'灵活高速',hp:55,speed:8,damage:11,exp:7,drop:'30%',
-  desc:'蓝色螺旋浮空怪，移动路线飘忽不定，非常难追踪。',color:0x38bdf8
- },
- red:{
-  name:'怒火红刺菌',icon:'🔥',type:'受伤加速',hp:95,speed:4.3,damage:18,exp:10,drop:'35%',
-  desc:'橙红色尖刺怪，受到攻击后会暴怒并大幅提高速度。',color:0xf43f5e
- },
- micro:{
-  name:'微观大魔王',icon:'👑',type:'BOSS',hp:1800,speed:2.4,damage:32,exp:150,drop:'100%',
-  desc:'拥有多个核心的巨型母菌BOSS，周围环绕彩色能量光环，是菌群的王者。',color:0x8b5cf6
- }
-};
+                        <button type="button" onclick="game.selectSchool('SK')" id="school-SK" 
+                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-blue-500 transition text-left relative overflow-hidden group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
+                                    SK
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white group-hover:text-blue-400">SK Kebangsaan</div>
+                                    <div class="text-xs text-slate-400">BM, English, Matematik, Sains</div>
+                                </div>
+                            </div>
+                        </button>
 
-const save={
- coins:0,selected:'aurora',unlocked:['aurora'],parts:{engine:0,blade:0,armor:0,magnet:0,cooler:0,tires:0},
- kills:{safety:0,purple:0,yellow:0,blue:0,red:0,micro:0},best:0
-};
-try{
- const s=JSON.parse(localStorage.getItem('mower_complete_v1')||'null');
- if(s){Object.assign(save,s);save.parts=Object.assign(save.parts,s.parts||{});save.kills=Object.assign(save.kills,s.kills||{});}
-}catch(e){}
-function persist(){localStorage.setItem('mower_complete_v1',JSON.stringify(save));}
+                        <button type="button" onclick="game.selectSchool('SJKT')" id="school-SJKT" 
+                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-emerald-500 transition text-left relative overflow-hidden group">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl font-bold">
+                                    淡小
+                                </div>
+                                <div>
+                                    <div class="font-bold text-white group-hover:text-emerald-400">SJK(T)</div>
+                                    <div class="text-xs text-slate-400">தமிழ், BM, English, Math, Sains</div>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
 
-/* =========================
-   Three.js
-========================= */
-let scene,camera,renderer,clock;
-let player,enemies=[],projectiles=[],gems=[],grass=[];
-let running=false,paused=false,gameTime=0,kills=0,coinsRun=0,level=1,exp=0,nextExp=30;
-let spawnTimer=0,shootTimer=0,bossTimer=0,microTimer=0;
-let joystick={x:0,y:0};
-const keys={};
+                <!-- 2. Grade Selection -->
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-gradeLabel">
+                        <i class="fa-solid fa-cubes text-yellow-400"></i> Select Standard / Grade (UASA Assessment Level):
+                    </label>
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5" id="gradeButtonsContainer"></div>
+                </div>
 
-function init3D(){
- scene=new THREE.Scene();
- scene.background=new THREE.Color(0x07111f);
- scene.fog=new THREE.Fog(0x07111f,45,125);
- camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,250);
- camera.position.set(0,18,18);
- renderer=new THREE.WebGLRenderer({antialias:true});
- renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
- renderer.setSize(innerWidth,innerHeight);
- document.getElementById('game').appendChild(renderer.domElement);
- clock=new THREE.Clock();
+                <!-- 3. Avatar Hero Selection -->
+                <div>
+                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-heroSelectLabel">
+                        <i class="fa-solid fa-user-astronaut text-purple-400"></i> Select Hero Companion:
+                    </label>
+                    <div class="grid grid-cols-4 gap-3" id="heroSelector"></div>
+                </div>
 
- scene.add(new THREE.HemisphereLight(0xbfe9ff,0x163b20,1.4));
- const sun=new THREE.DirectionalLight(0xffffff,1.5);
- sun.position.set(15,30,10);scene.add(sun);
+                <button id="btnGoToSubjects" disabled onclick="game.goToSubjectSelect()" 
+                    class="w-full py-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 font-bold text-lg shadow-lg shadow-yellow-500/25 opacity-50 cursor-not-allowed hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
+                    <span id="i18n-nextSubjectBtn">Next: Choose UASA Subject</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
 
- const ground=new THREE.Mesh(new THREE.PlaneGeometry(180,180),new THREE.MeshStandardMaterial({color:0x173b25,roughness:1}));
- ground.rotation.x=-Math.PI/2;scene.add(ground);
+        <!-- STEP 2: SUBJECT & MODE SELECTION -->
+        <section id="step2-subject" class="w-full glass-card rounded-3xl p-5 md:p-8 shadow-2xl hidden transition-all duration-300">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
+                <button onclick="game.backToSetup()" class="text-slate-400 hover:text-white flex items-center text-sm font-semibold transition">
+                    <i class="fa-solid fa-chevron-left mr-2"></i> <span id="i18n-backSetup">Change School / Standard</span>
+                </button>
+                <div id="profileBadge" class="bg-indigo-950 border border-indigo-500/40 text-indigo-300 text-xs px-3 py-1.5 rounded-full font-bold">
+                    SJK(C) • Standard 4
+                </div>
+            </div>
 
- const grid=new THREE.GridHelper(180,90,0x245c36,0x173f29);
- grid.position.y=.015;scene.add(grid);
+            <h2 class="text-2xl font-bold text-white font-game mb-4" id="i18n-selectSubjectTitle">Select UASA Subject</h2>
+            <div id="subjectGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
 
- for(let i=0;i<500;i++) spawnGrass();
- addDecor();
- window.addEventListener('resize',resize);
- requestAnimationFrame(loop);
-}
-function resize(){camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)}
-function spawnGrass(){
- const m=new THREE.Mesh(new THREE.ConeGeometry(.08+Math.random()*.13,.35+Math.random()*.5,5),new THREE.MeshStandardMaterial({color:0x42a85f}));
- m.position.set((Math.random()-.5)*170,.2,(Math.random()-.5)*170);
- m.rotation.y=Math.random()*6.28;scene.add(m);grass.push(m);
-}
-function addDecor(){
- for(let i=0;i<35;i++){
-  const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.4+Math.random()*.8),new THREE.MeshStandardMaterial({color:0x334155,roughness:1}));
-  rock.position.set((Math.random()-.5)*150,.35,(Math.random()-.5)*150);scene.add(rock);
- }
-}
-function mat(c,em=0){return new THREE.MeshStandardMaterial({color:c,emissive:em,emissiveIntensity:em?1.2:0,roughness:.45,metalness:.25})}
+            <h2 class="text-xl font-bold text-white font-game mb-3" id="i18n-selectModeTitle">Select Challenge Mode</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+                <div onclick="game.selectMode('adventure')" id="mode-adventure" 
+                    class="mode-card p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/30 flex items-center justify-center text-amber-400 text-xl shrink-0">
+                            <i class="fa-solid fa-dragon"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-amber-300" id="i18n-modeAdventureTitle">UASA Section A Battle</div>
+                            <div class="text-xs text-slate-400" id="i18n-modeAdventureDesc">Answer objective questions to defeat monsters!</div>
+                        </div>
+                    </div>
+                </div>
 
-function vehicleModel(id){
- const g=new THREE.Group();
- const colors={aurora:0x38bdf8,crusher:0xef4444,speed:0x06b6d4,flamer:0xf97316,tesla:0xe2e8f0,quantum:0xc084fc};
- const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,.7,3.3),mat(colors[id]));
- body.position.y=.7;g.add(body);
- const cabin=new THREE.Mesh(new THREE.BoxGeometry(1.55,.55,1.35),mat(id==='tesla'?0x94a3b8:0x1e293b));
- cabin.position.set(0,1.2,.1);g.add(cabin);
- for(const x of [-1.05,1.05])for(const z of [-1.05,1.05]){
-  const w=new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.35,16),mat(0x111827));
-  w.rotation.z=Math.PI/2;w.position.set(x,.45,z);g.add(w);
- }
- const light=new THREE.Mesh(new THREE.BoxGeometry(1.3,.12,.12),mat(0xfef08a,0xfacc15));
- light.position.set(0,.85,-1.7);g.add(light);
- return g;
-}
+                <div onclick="game.selectMode('timeattack')" id="mode-timeattack" 
+                    class="mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center text-sky-400 text-xl shrink-0">
+                            <i class="fa-solid fa-stopwatch"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white" id="i18n-modeTimeAttackTitle">60s UASA Speed Sprint</div>
+                            <div class="text-xs text-slate-400" id="i18n-modeTimeAttackDesc">Fast-paced quick response practice!</div>
+                        </div>
+                    </div>
+                </div>
 
-class Player{
- constructor(){
-  const v=VEHICLES.find(x=>x.id===save.selected)||VEHICLES[0];
-  this.data=v;this.maxHp=v.hp+save.parts.armor*18;this.hp=this.maxHp;
-  this.speed=v.speed+save.parts.engine*.55+save.parts.tires*.2;
-  this.damage=16+save.parts.blade*5;this.magnet=4+save.parts.magnet*.8;
-  this.fireRate=Math.max(.18,.65-save.parts.cooler*.055);
-  this.group=vehicleModel(v.id);scene.add(this.group);
-  this.group.position.set(0,0,0);
- }
- update(dt){
-  let x=joystick.x,y=joystick.y;
-  if(Math.abs(x)<.05&&Math.abs(y)<.05){
-   x=(keys.d||keys.ArrowRight?1:0)-(keys.a||keys.ArrowLeft?1:0);
-   y=(keys.s||keys.ArrowDown?1:0)-(keys.w||keys.ArrowUp?1:0);
-  }
-  const len=Math.hypot(x,y);if(len>1){x/=len;y/=len}
-  this.group.position.x+=x*this.speed*dt;
-  this.group.position.z+=y*this.speed*dt;
-  this.group.position.x=Math.max(-82,Math.min(82,this.group.position.x));
-  this.group.position.z=Math.max(-82,Math.min(82,this.group.position.z));
-  camera.position.lerp(new THREE.Vector3(this.group.position.x,18,this.group.position.z+18),.08);
-  camera.lookAt(this.group.position.x,0,this.group.position.z);
- }
- damagePlayer(n){this.hp-=n;if(this.hp<=0)endGame()}
-}
+                <div onclick="game.selectMode('ai')" id="mode-ai" 
+                    class="mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 text-xl shrink-0">
+                            <i class="fa-solid fa-brain"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-white flex items-center gap-1.5" id="i18n-modeAiTitle">
+                                AI UASA Generator <span class="bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded">Gemini</span>
+                            </div>
+                            <div class="text-xs text-slate-400" id="i18n-modeAiDesc">AI generates live endless UASA questions!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-class Enemy{
- constructor(x,z,type){
-  this.type=type;this.dead=false;this.enraged=false;this.rage=0;
-  if(MONSTERS[type]){
-   const d=MONSTERS[type];this.data=d;this.maxHp=d.hp+gameTime*(type==='micro'?15:.5);this.hp=this.maxHp;this.speed=d.speed;this.damage=d.damage;this.exp=d.exp;this.radius=type==='micro'?2.8:.8;this.boss=type==='micro';
-  }else{
-   this.maxHp=type==='boss'?700+gameTime*18:type==='fast'?25+gameTime*.8:45+gameTime*1.2;
-   this.hp=this.maxHp;this.speed=type==='boss'?3.5:type==='fast'?7.5:4.8;this.damage=type==='boss'?25:type==='fast'?8:12;this.exp=type==='boss'?100:type==='fast'?6:3;this.radius=type==='boss'?2.2:type==='fast'?.7:.9;this.boss=type==='boss';
-  }
-  this.group=this.model();this.group.position.set(x,0,z);scene.add(this.group);
- }
- model(){
-  if(MONSTERS[this.type]){
-   const d=MONSTERS[this.type],g=new THREE.Group();
-   if(this.type==='safety'){
-    const b=new THREE.Mesh(new THREE.SphereGeometry(.85,16,12),mat(d.color));b.scale.set(1.3,.8,1);b.position.y=.9;g.add(b);
-    const h=new THREE.Mesh(new THREE.SphereGeometry(.68,16,10),mat(0xfacc15));h.scale.y=.55;h.position.y=1.65;g.add(h);
-    const brim=new THREE.Mesh(new THREE.BoxGeometry(1.45,.12,.65),mat(0xeab308));brim.position.y=1.5;g.add(brim);
-    const sh=new THREE.Mesh(new THREE.BoxGeometry(.12,.12,1.2),mat(0x94a3b8));sh.rotation.x=.8;sh.position.set(.75,.7,0);g.add(sh);
-   }else if(this.type==='purple'){
-    const b=new THREE.Mesh(new THREE.SphereGeometry(.72,18,14),mat(d.color));b.position.y=.8;g.add(b);
-    const bag=new THREE.Mesh(new THREE.BoxGeometry(.45,.55,.25),mat(0x312e81));bag.position.set(.65,.7,0);g.add(bag);
-   }else if(this.type==='yellow'){
-    const b=new THREE.Mesh(new THREE.SphereGeometry(.62,16,12),mat(d.color));b.position.y=.7;g.add(b);
-    const eye=mat(0x111827);for(const x of [-.2,.2]){let e=new THREE.Mesh(new THREE.SphereGeometry(.08,8,8),eye);e.position.set(x,.82,.56);g.add(e)}
-   }else if(this.type==='blue'){
-    const b=new THREE.Mesh(new THREE.TorusKnotGeometry(.62,.16,48,8,2,3),mat(0x38bdf8,0x0369a1));b.position.y=1.05;g.add(b);
-   }else if(this.type==='red'){
-    const b=new THREE.Mesh(new THREE.IcosahedronGeometry(.85,1),mat(d.color));b.position.y=.9;g.add(b);
-    for(let i=0;i<8;i++){let s=new THREE.Mesh(new THREE.ConeGeometry(.15,.7,6),mat(0xfb923c,0x7f1d1d));let a=i*Math.PI/4;s.position.set(Math.cos(a)*.8,.9,Math.sin(a)*.8);s.lookAt(s.position.x*2,s.position.y,s.position.z*2);g.add(s)}
-   }else{
-    const b=new THREE.Mesh(new THREE.IcosahedronGeometry(2.1,2),mat(0x7c3aed,0x7c3aed));b.position.y=2.3;g.add(b);
-    [0xff3b81,0x22d3ee,0xfacc15,0x4ade80].forEach((c,i)=>{let r=new THREE.Mesh(new THREE.TorusGeometry(2.6+i*.3,.08,10,48),new THREE.MeshBasicMaterial({color:c}));r.rotation.x=Math.PI/2+i*.35;r.rotation.z=i*.5;r.position.y=2.2;g.add(r)});
-    for(let i=0;i<3;i++){let e=new THREE.Mesh(new THREE.SphereGeometry(.2,10,10),new THREE.MeshBasicMaterial({color:0xffffff}));let a=i*Math.PI*2/3;e.position.set(Math.cos(a)*1.1,2.6,Math.sin(a)*1.1);g.add(e)}
-   }
-   return g;
-  }
-  const c=this.type==='boss'?0xef4444:this.type==='fast'?0xfacc15:0x22c55e;
-  const g=new THREE.Group(),b=new THREE.Mesh(new THREE.DodecahedronGeometry(this.radius),mat(c,this.type==='boss'?0x7f1d1d:0));b.position.y=this.radius;g.add(b);return g;
- }
- update(dt){
-  if(this.dead)return;
-  const dx=player.group.position.x-this.group.position.x,dz=player.group.position.z-this.group.position.z,d=Math.hypot(dx,dz);
-  if(this.type==='red'&&this.enraged)this.speed=7.5;
-  if(d>.1){this.group.position.x+=dx/d*this.speed*dt;this.group.position.z+=dz/d*this.speed*dt}
-  if(this.type==='blue'){this.group.rotation.y+=dt*5;this.group.position.y=1+Math.sin(gameTime*5+this.group.position.x)*.3}
-  if(this.type==='micro'){this.group.rotation.y+=dt*.6}
-  if(d<this.radius+1.3){player.damagePlayer(this.damage*dt)}
- }
- hit(dmg){
-  if(this.dead)return;
-  if(this.type==='red'&&!this.enraged){this.enraged=true;this.group.scale.set(1.15,1.15,1.15)}
-  this.hp-=dmg;
-  if(this.hp<=0)this.die();
- }
- die(){
-  if(this.dead)return;this.dead=true;kills++;
-  if(MONSTERS[this.type]){save.kills[this.type]++;persist()}
-  gainExp(this.exp);
-  if(Math.random()<(MONSTERS[this.type]?parseFloat(MONSTERS[this.type].drop)/100:(this.boss?1:.25))){
-   const n=this.boss?5:1+Math.floor(Math.random()*2);
-   for(let i=0;i<n;i++)spawnGem(this.group.position.x+(Math.random()-.5)*2,this.group.position.z+(Math.random()-.5)*2,'coin',this.boss?10:3);
-  }
-  spawnGem(this.group.position.x,this.group.position.z,'exp',this.exp);
-  scene.remove(this.group);
- }
-}
+            <button onclick="game.startGame()" 
+                class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xl shadow-lg shadow-emerald-500/25 hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-gamepad"></i> <span id="i18n-startGameBtn">Start UASA Challenge!</span>
+            </button>
+        </section>
 
-class Projectile{
- constructor(x,z,target,dmg,kind='bullet'){
-  this.target=target;this.dmg=dmg;this.kind=kind;this.dead=false;
-  this.mesh=new THREE.Mesh(kind==='laser'?new THREE.BoxGeometry(.12,.12,2):new THREE.SphereGeometry(.14,8,8),mat(kind==='laser'?0x22d3ee:0xfacc15,kind==='laser'?0x06b6d4:0));this.mesh.position.set(x,1,z);scene.add(this.mesh)
- }
- update(dt){
-  if(!this.target||this.target.dead){this.destroy();return}
-  const p=this.mesh.position,t=this.target.group.position;const dx=t.x-p.x,dz=t.z-p.z,d=Math.hypot(dx,dz);
-  if(d<.8){this.target.hit(this.dmg);this.destroy();return}
-  p.x+=dx/d*22*dt;p.z+=dz/d*22*dt;this.mesh.lookAt(t.x,1,t.z)
- }
- destroy(){if(!this.dead){this.dead=true;scene.remove(this.mesh)}}
-}
+        <!-- STEP 3: GAMEPLAY ARENA -->
+        <section id="step3-game" class="w-full glass-card rounded-3xl p-4 md:p-6 shadow-2xl hidden relative overflow-hidden">
+            
+            <div class="flex items-center justify-between mb-4 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
+                <div class="flex items-center space-x-2">
+                    <div id="heroMiniAvatar" class="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-lg">
+                        🐯
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400" id="currentSubjectTag">Mathematics • Std 4</div>
+                        <div class="text-sm font-bold text-white" id="levelStageLabel">Question 1 / 5</div>
+                    </div>
+                </div>
 
-function spawnGem(x,z,type,value){
- const m=new THREE.Mesh(new THREE.OctahedronGeometry(.18),mat(type==='coin'?0xfacc15:0x22d3ee,type==='coin'?0xf59e0b:0x0891b2));
- m.position.set(x,.45,z);m.userData={type,value};scene.add(m);gems.push(m);
-}
-function gainExp(v){
- exp+=v;
- while(exp>=nextExp){exp-=nextExp;level++;nextExp=Math.floor(nextExp*1.32);showLevelUp()}
-}
-function showLevelUp(){
- paused=true;document.getElementById('levelup').classList.remove('hidden');
- const pool=[
-  ['blade','⚔️ 切割强化','攻击伤害 +25%'],
-  ['speed','💨 引擎强化','移动速度 +10%'],
-  ['armor','🛡️ 装甲强化','最大生命 +25'],
-  ['magnet','🧲 磁力强化','经验吸收范围 +2'],
-  ['cooler','❄️ 冷却强化','攻击速度提高']
- ];
- const chosen=[...pool].sort(()=>Math.random()-.5).slice(0,3);
- const box=document.getElementById('skills');box.innerHTML='';
- chosen.forEach(s=>{const b=document.createElement('button');b.className='card p-4 text-left hover:border-cyan-400';b.innerHTML='<b>'+s[1]+'</b><div class="text-xs text-slate-400 mt-1">'+s[2]+'</div>';b.onclick=()=>{if(s[0]==='blade')player.damage*=1.25;if(s[0]==='speed')player.speed*=1.1;if(s[0]==='armor'){player.maxHp+=25;player.hp+=25}if(s[0]==='magnet')player.magnet+=2;if(s[0]==='cooler')player.fireRate*=.85;document.getElementById('levelup').classList.add('hidden');paused=false};box.appendChild(b)})
-}
+                <div class="flex items-center space-x-4">
+                    <div id="timerContainer" class="hidden flex items-center space-x-1.5 bg-sky-950 border border-sky-500/50 px-3 py-1 rounded-full text-sky-300 font-bold text-sm">
+                        <i class="fa-solid fa-clock text-sky-400 animate-pulse"></i>
+                        <span id="gameTimer">60s</span>
+                    </div>
 
-/* =========================
-   生成
-========================= */
-function spawnEnemy(type){
- const a=Math.random()*Math.PI*2,d=28+Math.random()*10;
- enemies.push(new Enemy(player.group.position.x+Math.cos(a)*d,player.group.position.z+Math.sin(a)*d,type));
-}
-function spawnBoss(type){
- spawnEnemy(type);
- document.getElementById('bossBar').classList.remove('hidden');
- document.getElementById('bossName').textContent=type==='micro'?'微观大魔王':'变异巨霸草王';
-}
-function spawnWave(){
- const r=Math.random();
- if(r<.18){for(let i=0;i<4;i++)spawnEnemy('purple')}
- else if(r<.45){for(let i=0;i<3;i++)spawnEnemy('yellow')}
- else if(r<.62)spawnEnemy('safety');
- else if(r<.79)spawnEnemy('blue');
- else if(r<.91)spawnEnemy('red');
- else spawnEnemy(Math.random()<.35?'fast':'normal');
-}
+                    <div id="livesContainer" class="flex items-center space-x-1"></div>
+                </div>
+            </div>
 
-/* =========================
-   游戏循环
-========================= */
-function updateHUD(){
- document.getElementById('level').textContent=level;
- document.getElementById('expbar').style.width=(exp/nextExp*100)+'%';
- document.getElementById('time').textContent=formatTime(gameTime);
- document.getElementById('kills').textContent=kills;
- document.getElementById('coins').textContent=save.coins+coinsRun;
- document.getElementById('hp').textContent=Math.max(0,Math.ceil(player.hp));
- const boss=enemies.find(e=>e.boss&&!e.dead);
- if(boss){document.getElementById('bossBar').classList.remove('hidden');document.getElementById('bossHp').style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';document.getElementById('bossName').textContent=boss.type==='micro'?'微观大魔王':'变异巨霸草王'}
- else document.getElementById('bossBar').classList.add('hidden');
-}
-function formatTime(t){let m=Math.floor(t/60),s=Math.floor(t%60);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
-function gameUpdate(dt){
- if(!running||paused)return;
- gameTime+=dt;spawnTimer+=dt;shootTimer+=dt;bossTimer+=dt;microTimer+=dt;
- player.update(dt);
- if(spawnTimer>Math.max(.35,1.25-gameTime*.006)){spawnTimer=0;spawnWave()}
- if(bossTimer>90){bossTimer=0;spawnBoss('boss')}
- if(microTimer>120){microTimer=0;spawnBoss('micro')}
- if(shootTimer>player.fireRate){
-  shootTimer=0;
-  let target=enemies.filter(e=>!e.dead).sort((a,b)=>a.group.position.distanceTo(player.group.position)-b.group.position.distanceTo(player.group.position))[0];
-  if(target&&target.group.position.distanceTo(player.group.position)<24){
-   projectiles.push(new Projectile(player.group.position.x,player.group.position.z,target,player.damage,player.data.id==='speed'||player.data.id==='tesla'?'laser':'bullet'));
-  }
- }
- enemies.forEach(e=>e.update(dt));
- projectiles.forEach(p=>p.update(dt));
- gems.forEach(g=>{
-  const dx=player.group.position.x-g.position.x,dz=player.group.position.z-g.position.z,d=Math.hypot(dx,dz);
-  if(d<player.magnet){g.position.x+=dx*dt*6;g.position.z+=dz*dt*6}
-  if(d<1){if(g.userData.type==='coin')coinsRun+=g.userData.value;else gainExp(g.userData.value);scene.remove(g);g.userData.dead=true}
- });
- enemies=enemies.filter(e=>!e.dead);
- projectiles=projectiles.filter(p=>!p.dead);
- gems=gems.filter(g=>!g.userData.dead);
- updateHUD();
-}
-function loop(){
- requestAnimationFrame(loop);
- const dt=Math.min(.05,clock?clock.getDelta():.016);
- gameUpdate(dt);
- renderer.render(scene,camera);
-}
+            <div id="monsterBattleArea" class="mb-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-4 rounded-2xl border border-indigo-900/60 relative">
+                <div class="flex justify-between items-center px-4 py-2">
+                    <div class="flex flex-col items-center">
+                        <div id="heroBattleSprite" class="text-5xl md:text-6xl animate-float filter drop-shadow-md">🐯</div>
+                        <div class="text-xs font-bold text-slate-300 mt-1" id="heroNameLabel">Tiger Hero</div>
+                    </div>
 
-/* =========================
-   UI
-========================= */
-function renderVehicles(){
- const box=document.getElementById('vehicles');box.innerHTML='';
- VEHICLES.forEach(v=>{
-  const unlocked=save.unlocked.includes(v.id),sel=save.selected===v.id;
-  const b=document.createElement('div');b.className='vehicle card p-3 '+(sel?'selected':'');
-  b.innerHTML='<div class="preview flex items-center justify-center"><div class="text-5xl">🚗</div></div><b>'+v.name+'</b><div class="text-[11px] text-cyan-400">'+v.weapon+'</div><div class="text-[10px] text-slate-400">'+v.desc+'</div><div class="text-xs mt-2">'+(unlocked?'已解锁':'🪙 '+v.price)+'</div>';
-  b.onclick=()=>{
-   if(unlocked){save.selected=v.id;persist();renderVehicles()}
-   else if(save.coins>=v.price){save.coins-=v.price;save.unlocked.push(v.id);save.selected=v.id;persist();renderVehicles()}
-   else alert('金币不够！');
-  };
-  box.appendChild(b);
- });
- document.getElementById('menuCoins').textContent=save.coins;
-}
-function renderParts(){
- const box=document.getElementById('parts');box.innerHTML='';
- PARTS.forEach(p=>{
-  const lv=save.parts[p.id]||0,cost=p.base*(lv+1);
-  const b=document.createElement('button');b.className='card p-4 text-left hover:border-cyan-400';
-  b.innerHTML='<div class="flex justify-between"><b>'+p.name+'</b><span class="text-cyan-400">Lv.'+lv+'</span></div><div class="text-xs text-slate-400 mt-1">'+p.desc+'</div><div class="text-xs mt-3">升级：🪙 '+cost+'</div>';
-  b.onclick=()=>{if(save.coins>=cost){save.coins-=cost;save.parts[p.id]=lv+1;persist();renderParts();renderVehicles()}else alert('金币不够！')};
-  box.appendChild(b);
- });
-}
-function renderBook(){
- const box=document.getElementById('bookList');box.innerHTML='';
- const list=[...Object.entries(MONSTERS),['oldboss',{name:'变异巨霸草王',icon:'👹',type:'原版BOSS',hp:700,speed:3.5,damage:25,exp:100,drop:'100%',desc:'原版游戏保留的巨型草王BOSS。',color:0xef4444}]];
- list.forEach(([id,m])=>{
-  const k=save.kills[id]||0;
-  const b=document.createElement('div');b.className='card p-4';
-  b.innerHTML='<div class="preview flex items-center justify-center"><div class="text-6xl">'+m.icon+'</div></div><div class="flex justify-between mt-3"><b>'+m.name+'</b><span class="text-xs '+(m.type.includes('BOSS')?'text-red-400':'text-cyan-400')+'">'+m.type+'</span></div><p class="text-xs text-slate-400 mt-2 leading-relaxed">'+m.desc+'</p><div class="grid grid-cols-2 gap-2 mt-3 text-xs"><div class="bg-slate-900 rounded-lg p-2">生命<br><b>'+Math.round(m.hp)+'</b></div><div class="bg-slate-900 rounded-lg p-2">速度<br><b>'+m.speed+'</b></div><div class="bg-slate-900 rounded-lg p-2">击杀<br><b class="text-emerald-400">'+k+'</b></div><div class="bg-slate-900 rounded-lg p-2">掉落<br><b class="text-yellow-400">'+m.drop+'</b></div></div>';
-  box.appendChild(b);
- });
-}
-function closeGarage(){document.getElementById('garage').classList.add('hidden')}
-function closeBook(){document.getElementById('book').classList.add('hidden')}
-function clearWorld(){
- enemies.forEach(e=>scene.remove(e.group));projectiles.forEach(p=>scene.remove(p.mesh));gems.forEach(g=>scene.remove(g));
- enemies=[];projectiles=[];gems=[];
-}
+                    <div class="flex flex-col items-center">
+                        <span class="text-amber-400 font-black text-xl font-game italic">VS</span>
+                        <div class="w-20 bg-slate-800 rounded-full h-2.5 mt-2 border border-slate-700">
+                            <div id="monsterHpBar" class="bg-red-500 h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
+                        </div>
+                    </div>
 
-/* =========================
-   游戏开始/结束
-========================= */
-function startGame(){
- clearWorld();running=true;paused=false;gameTime=0;kills=0;coinsRun=0;level=1;exp=0;nextExp=30;spawnTimer=shootTimer=bossTimer=microTimer=0;
- if(player)scene.remove(player.group);player=new Player();
- document.getElementById('menu').classList.add('hidden');
- document.getElementById('gameover').classList.add('hidden');
- document.getElementById('pause').classList.add('hidden');
- document.getElementById('hud').classList.remove('hidden');
- document.getElementById('joystick').classList.remove('hidden');
- document.getElementById('attackHint').classList.remove('hidden');
-}
-function endGame(){
- if(!running)return;
- running=false;paused=false;
- save.coins+=coinsRun;save.best=Math.max(save.best,kills);persist();
- document.getElementById('finalTime').textContent=formatTime(gameTime);
- document.getElementById('finalKills').textContent=kills;
- document.getElementById('finalCoins').textContent=coinsRun;
- document.getElementById('gameover').classList.remove('hidden');
- document.getElementById('hud').classList.add('hidden');document.getElementById('joystick').classList.add('hidden');document.getElementById('attackHint').classList.add('hidden');
-}
-document.getElementById('startBtn').onclick=startGame;
-document.getElementById('againBtn').onclick=startGame;
-document.getElementById('menuBtn').onclick=()=>{document.getElementById('gameover').classList.add('hidden');document.getElementById('menu').classList.remove('hidden');renderVehicles()};
-document.getElementById('garageBtn').onclick=()=>{renderParts();document.getElementById('garage').classList.remove('hidden')};
-document.getElementById('bookBtn').onclick=()=>{renderBook();document.getElementById('book').classList.remove('hidden')};
-document.getElementById('pauseBtn').onclick=()=>{if(running){paused=true;document.getElementById('pause').classList.remove('hidden')}};
-document.getElementById('resumeBtn').onclick=()=>{paused=false;document.getElementById('pause').classList.add('hidden')};
-document.getElementById('quitBtn').onclick=()=>{paused=false;running=false;document.getElementById('pause').classList.add('hidden');document.getElementById('hud').classList.add('hidden');document.getElementById('joystick').classList.add('hidden');document.getElementById('menu').classList.remove('hidden');renderVehicles()};
+                    <div class="flex flex-col items-center">
+                        <div id="monsterSprite" class="text-5xl md:text-6xl animate-bounce-short filter drop-shadow-md">👾</div>
+                        <div class="text-xs font-bold text-red-400 mt-1" id="monsterNameLabel">UASA Quiz Monster</div>
+                    </div>
+                </div>
+            </div>
 
-window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.key==='Escape'&&running){paused=!paused;document.getElementById('pause').classList.toggle('hidden',!paused)}});
-window.addEventListener('keyup',e=>keys[e.key]=false);
+            <div id="aiLoadingOverlay" class="hidden my-8 p-8 text-center flex flex-col items-center justify-center">
+                <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+                <div class="text-purple-300 font-bold text-lg" id="i18n-aiLoading">Gemini AI is generating UASA questions...</div>
+                <div class="text-slate-400 text-xs mt-1" id="i18n-aiLoadingSub">Aligned with KSSR Semakan & UASA Exam Standards...</div>
+            </div>
 
-/* 摇杆 */
-const joy=document.getElementById('joystick'),stick=document.getElementById('stick');
-function joyMove(e){
- const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
- const p=e.touches?e.touches[0]:e;let dx=p.clientX-cx,dy=p.clientY-cy,max=42,d=Math.hypot(dx,dy);
- if(d>max){dx=dx/d*max;dy=dy/d*max}
- joystick.x=dx/max;joystick.y=dy/max;stick.style.transform=`translate(${dx}px,${dy}px)`;
-}
-function joyEnd(){joystick.x=0;joystick.y=0;stick.style.transform='translate(0,0)'}
-joy.addEventListener('touchstart',e=>{e.preventDefault();joyMove(e)},{passive:false});
-joy.addEventListener('touchmove',e=>{e.preventDefault();joyMove(e)},{passive:false});
-joy.addEventListener('touchend',joyEnd);
+            <div id="questionDisplayCard" class="bg-slate-800/80 p-5 md:p-6 rounded-2xl border border-slate-700 mb-4 shadow-inner">
+                <div class="text-xs font-semibold text-amber-400 mb-1 tracking-wider uppercase" id="qCategoryHeader">UASA SECTION A</div>
+                <h3 id="questionText" class="text-lg md:text-xl font-bold text-white leading-snug">Loading...</h3>
+            </div>
 
-/* 初始化 */
-init3D();renderVehicles();persist();
-</script>
+            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+
+            <div id="explanationBox" class="mt-4 p-4 rounded-xl bg-indigo-950/80 border border-indigo-500/40 hidden animate-fade-in">
+                <div class="flex items-start space-x-2">
+                    <i class="fa-solid fa-lightbulb text-yellow-400 text-lg mt-0.5"></i>
+                    <div>
+                        <div class="text-xs font-bold text-yellow-300 uppercase tracking-wide" id="i18n-explanationTitle">UASA Explanation / Penjelasan:</div>
+                        <div id="explanationText" class="text-sm text-slate-200 mt-0.5"></div>
+                    </div>
+                </div>
+                <button id="btnNextQuestion" onclick="game.nextQuestion()" 
+                    class="mt-3 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition text-sm flex items-center justify-center gap-1">
+                    <span id="i18n-nextQBtn">Next Question</span> <i class="fa-solid fa-arrow-right ml-1"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 4: UASA SUMMARY & RESULT SCREEN -->
+        <section id="step4-result" class="w-full glass-card rounded-3xl p-6 md:p-8 shadow-2xl hidden text-center">
+            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-4xl shadow-xl shadow-yellow-500/30 mb-4 animate-bounce">
+                🏆
+            </div>
+
+            <h2 class="text-3xl font-extrabold text-white font-game mb-1" id="resultTitle">UASA Challenge Completed!</h2>
+            <p class="text-slate-400 text-sm mb-4" id="resultSubtitle">Great job completing your academic practice session!</p>
+
+            <!-- UASA Performance Band Badge -->
+            <div class="inline-flex items-center gap-2 bg-indigo-950 border border-indigo-500/50 px-4 py-2 rounded-full mb-6">
+                <span class="text-xs text-indigo-300 font-semibold" id="i18n-tpLabel">UASA Tahap Penguasaan:</span>
+                <span class="text-sm font-black text-yellow-400 font-game" id="tpBandValue">TP 6 (Cemerlang)</span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 mb-6">
+                <div>
+                    <div class="text-slate-400 text-xs" id="i18n-totalScore">Total Score</div>
+                    <div class="text-2xl font-black text-amber-400 font-game mt-0.5" id="finalScore">0</div>
+                </div>
+                <div>
+                    <div class="text-slate-400 text-xs" id="i18n-accuracy">Accuracy</div>
+                    <div class="text-2xl font-black text-emerald-400 font-game mt-0.5" id="finalAccuracy">100%</div>
+                </div>
+                <div>
+                    <div class="text-slate-400 text-xs" id="i18n-starsEarned">Stars Earned</div>
+                    <div class="text-2xl font-black text-yellow-300 font-game mt-0.5 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-star text-base"></i> <span id="finalStars">+3</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="game.startGame()" class="flex-1 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-rotate-right"></i> <span id="i18n-playAgain">Try Again</span>
+                </button>
+                <button onclick="game.resetToHome()" class="flex-1 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-house"></i> <span id="i18n-backHome">Main Menu</span>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/80 bg-slate-950">
+        <p id="i18n-footerText">Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz</p>
+    </footer>
+
+    <script>
+        // MULTI-LANGUAGE TRANSLATION DICTIONARY
+        const I18N = {
+            en: {
+                appName: "UASA Primary Quiz Adventure",
+                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
+                badgeKssr: "🇲🇾 Format UASA & KSSR Semakan Aligned",
+                heroSetupTitle: "Create Your Learning Hero",
+                heroSetupDesc: "Select your school stream and standard to begin!",
+                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Select School Stream (Jenis Sekolah):",
+                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Select Standard / Grade (UASA Assessment Level):",
+                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Select Hero Companion:",
+                nextSubjectBtn: "Next: Choose UASA Subject",
+                backSetup: "Change School / Standard",
+                selectSubjectTitle: "Select UASA Subject",
+                selectModeTitle: "Select Challenge Mode",
+                modeAdventureTitle: "UASA Section A Battle",
+                modeAdventureDesc: "Answer objective questions to defeat monsters!",
+                modeTimeAttackTitle: "60s UASA Speed Sprint",
+                modeTimeAttackDesc: "Fast-paced quick response practice!",
+                modeAiTitle: "AI UASA Generator <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
+                modeAiDesc: "AI generates live endless UASA questions!",
+                startGameBtn: "Start UASA Challenge!",
+                explanationTitle: "UASA Explanation / Penjelasan:",
+                nextQBtn: "Next Question",
+                totalScore: "Total Score",
+                accuracy: "Accuracy",
+                starsEarned: "Stars Earned",
+                playAgain: "Try Again",
+                backHome: "Main Menu",
+                aiLoading: "Gemini AI is generating UASA questions...",
+                aiLoadingSub: "Aligned with KSSR Semakan & UASA Exam Standards...",
+                footerText: "Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz",
+                gradeSuffix: "Std",
+                resVictoryTitle: "🎉 UASA Practice Victory!",
+                resVictorySub: "Outstanding performance! You mastered this session!",
+                resDefeatTitle: "💪 Keep Practice Going!",
+                resDefeatSub: "Review the answers and try again to improve your UASA score!",
+                monsterName: "UASA Quiz Monster",
+                tpLabel: "UASA Performance Level:"
+            },
+            ms: {
+                appName: "Pengembaraan Kuiz UASA Sekolah MY",
+                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
+                badgeKssr: "🇲🇾 Selaras Format UASA & KSSR Semakan",
+                heroSetupTitle: "Cipta Wira Pembelajaran Anda",
+                heroSetupDesc: "Pilih aliran sekolah & tahun/darjah anda!",
+                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Pilih Aliran Sekolah (Jenis Sekolah):",
+                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Pilih Tahun / Darjah (Tahap UASA):",
+                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Pilih Rakan Wira:",
+                nextSubjectBtn: "Seterusnya: Pilih Subjek UASA",
+                backSetup: "Tukar Sekolah / Darjah",
+                selectSubjectTitle: "Pilih Subjek UASA",
+                selectModeTitle: "Pilih Mod Cabaran",
+                modeAdventureTitle: "Cabaran UASA Bahagian A",
+                modeAdventureDesc: "Jawab soalan objektif untuk menewaskan raksasa!",
+                modeTimeAttackTitle: "Pecutan 60 Saat UASA",
+                modeTimeAttackDesc: "Uji kepantasan dan ketepatan jawapan anda!",
+                modeAiTitle: "Penjana AI UASA <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
+                modeAiDesc: "AI menjana soalan UASA baharu secara langsung!",
+                startGameBtn: "Mula Permainan UASA!",
+                explanationTitle: "Penjelasan / Explanation:",
+                nextQBtn: "Soalan Seterusnya",
+                totalScore: "Jumlah Markah",
+                accuracy: "Ketepatan",
+                starsEarned: "Bintang Diraih",
+                playAgain: "Main Lagi",
+                backHome: "Halaman Utama",
+                aiLoading: "Gemini AI sedang menjana soalan UASA...",
+                aiLoadingSub: "Mengikut Kurikulum KSSR Semakan & Format UASA...",
+                footerText: "Kuiz Pintar UASA (Ujian Akhir Sesi Akademik) SJKC • SK • SJKT Malaysia",
+                gradeSuffix: "Tahun",
+                resVictoryTitle: "🎉 Tahniah! Latihan UASA Berjaya!",
+                resVictorySub: "Anda telah menunjukkan penguasaan ilmu yang cemerlang!",
+                resDefeatTitle: "💪 Teruskan Usaha!",
+                resDefeatSub: "Semak jawapan dan cuba lagi untuk tingkatkan keputusan UASA!",
+                monsterName: "Raksasa UASA",
+                tpLabel: "Tahap Penguasaan UASA:"
+            },
+            zh: {
+                appName: "全马 UASA 智力大冒险",
+                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
+                badgeKssr: "🇲🇾 适配 UASA 格式与 KSSR Semakan 课程",
+                heroSetupTitle: "创建你的学习勇士角色",
+                heroSetupDesc: "选择学校源流与年级，开始 UASA 模拟练习！",
+                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> 选择学校源流 (Jenis Sekolah):",
+                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> 选择年级 (UASA 评估级别):",
+                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> 选择英雄小伙伴:",
+                nextSubjectBtn: "下一步：选择 UASA 科目",
+                backSetup: "重选学校/年级",
+                selectSubjectTitle: "选择 UASA 评估科目",
+                selectModeTitle: "选择模式",
+                modeAdventureTitle: "UASA 甲组 (Bahagian A) 闯关",
+                modeAdventureDesc: "解答单选题击败怪兽，赢取学业优胜！",
+                modeTimeAttackTitle: "60秒 UASA 限时冲刺",
+                modeTimeAttackDesc: "考验答题速度与敏捷度！",
+                modeAiTitle: "AI 智能 UASA 出题 <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
+                modeAiDesc: "AI 实时依据 UASA 大纲生成无限全新题目！",
+                startGameBtn: "开启 UASA 挑战！",
+                explanationTitle: "UASA 答案解析 / Penjelasan:",
+                nextQBtn: "下一题",
+                totalScore: "获得总分",
+                accuracy: "正确率",
+                starsEarned: "收获星星",
+                playAgain: "再玩一次",
+                backHome: "返回主页",
+                aiLoading: "Gemini AI 正在生成 UASA 评估题目...",
+                aiLoadingSub: "根据马来西亚 UASA 与 KSSR Semakan 课程标准...",
+                footerText: "马来西亚 UASA (Ujian Akhir Sesi Akademik) 华小 • 国小 • 淡小 智力闯关",
+                gradeSuffix: "年级",
+                resVictoryTitle: "🎉 UASA 闯关成功！",
+                resVictorySub: "太棒了！你的表现达到优异标准！",
+                resDefeatTitle: "💪 继续加油，再接再厉！",
+                resDefeatSub: "查阅解析并重新练习，提升你的 UASA 成绩！",
+                monsterName: "UASA 知识小怪兽",
+                tpLabel: "UASA 掌握级别 (Tahap Penguasaan):"
+            }
+        };
+
+        // AUDIO SYNTHESIZER
+        class SoundEngine {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            toggleMute() {
+                this.muted = !this.muted;
+                const icon = document.getElementById('muteBtnIcon');
+                if (icon) {
+                    icon.className = this.muted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-xs md:text-sm";
+                }
+            }
+
+            playCorrect() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
+                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
+                osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.35);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.4);
+            }
+
+            playWrong() {
+                if (this.muted) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(130, now + 0.25);
+
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(now + 0.3);
+            }
+
+            playVictory() {
+                if (this.muted) return;
+                this.init();
+                const notes = [523.25, 659.25, 783.99, 1046.50, 880, 1046.50];
+                notes.forEach((freq, idx) => {
+                    setTimeout(() => {
+                        const now = this.ctx.currentTime;
+                        const osc = this.ctx.createOscillator();
+                        const gain = this.ctx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now);
+                        gain.gain.setValueAtTime(0.25, now);
+                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                        osc.connect(gain);
+                        gain.connect(this.ctx.destination);
+                        osc.start();
+                        osc.stop(now + 0.25);
+                    }, idx * 120);
+                });
+            }
+        }
+
+        const audioManager = new SoundEngine();
+
+        // CONFETTI SYSTEM
+        class ParticleSystem {
+            constructor() {
+                this.canvas = document.getElementById('effectsCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.particles = [];
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+                this.animate();
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            burst(x, y, count = 35) {
+                const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        x: x || this.canvas.width / 2,
+                        y: y || this.canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 12,
+                        vy: (Math.random() - 0.8) * 12,
+                        size: Math.random() * 8 + 4,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        life: 1,
+                        decay: Math.random() * 0.02 + 0.015
+                    });
+                }
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.3;
+                    p.life -= p.decay;
+
+                    if (p.life <= 0) {
+                        this.particles.splice(i, 1);
+                    } else {
+                        this.ctx.globalAlpha = p.life;
+                        this.ctx.fillStyle = p.color;
+                        this.ctx.beginPath();
+                        this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                        this.ctx.fill();
+                    }
+                }
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        let fxSystem;
+
+        // UASA SAMPLE QUESTION BANK
+        const UASA_QUESTION_BANK = {
+            SJKC: {
+                BC: {
+                    4: [
+                        { q: "请选出下列句子中“成语”使用最恰当的一项：", opts: ["他在台上表演时神采奕奕，赢得了阵阵掌声。", "经过这次惨痛的教训，他终于画蛇添足。", "这里的风景非常漂亮，真是让人坐井观天。", "这场足球比赛十分精彩，双方实力不分轩輊。"], ans: 0, exp: "“神采奕奕”形容精神饱满，容光焕发，适合用在台上的表演表现。" },
+                        { q: "“凡事都要三思而后行。”这句话告诉我们什么道理？", opts: ["做事前要深思熟虑", "走路时要注意安全", "说话时要讲究礼貌", "学习时要勤奋努力"], ans: 0, exp: "“三思而后行”指反复考虑后再采取行动。" }
+                    ],
+                    5: [
+                        { q: "找出与“居安思危”意思相近的词语：", opts: ["未雨绸缪", "自高自大", "盲目跟风", "纸上谈兵"], ans: 0, exp: "“居安思危”和“未雨绸缪”都表示事先做好准备，防患于未然。" }
+                    ]
+                },
+                Math: {
+                    4: [
+                        { q: "在 54 820 中，数字 '4' 的数值 (Nilai Digit) 是什么？", opts: ["4000", "400", "40", "40000"], ans: 0, exp: "数字 4 在千位 (ribu)，因此其数值为 4000。" },
+                        { q: "计算：12.5 kg + 3.85 kg = ?", opts: ["16.35 kg", "15.35 kg", "16.85 kg", "15.85 kg"], ans: 0, exp: "12.50 + 3.85 = 16.35 kg。" }
+                    ]
+                },
+                BM: {
+                    4: [
+                        { q: "Pilih kata ganda yang betul bagi ayat ini: 'Murid-murid sedang membaca ______ di perpustakaan.'", opts: ["buku-buku", "rumah-rumah", "meja-meja", "kasut-kasut"], ans: 0, exp: "'Buku-buku' ialah kata ganda yang merujuk kepada banyak bahan bacaan." }
+                    ]
+                },
+                BI: {
+                    4: [
+                        { q: "Which of the following sentence uses the correct past tense?", opts: ["She walked to school yesterday.", "She walk to school yesterday.", "She is walking to school yesterday.", "She walks to school yesterday."], ans: 0, exp: "The signal word 'yesterday' indicates simple past tense, so 'walked' is correct." }
+                    ]
+                },
+                Science: {
+                    4: [
+                        { q: "下列哪种植物是通过“孢子” (Spora) 来繁殖的？", opts: ["羊齿植物 (Paku-pakis)", "香蕉树 (Pokok Pisang)", "凤仙花 (Pokok Keembung)", "芒果树 (Pokok Manga)"], ans: 0, exp: "羊齿植物（蕨类）没有花朵和种子，主要依靠叶背的孢子囊繁殖。" }
+                    ]
+                }
+            },
+            SK: {
+                BM: {
+                    4: [
+                        { q: "Pilih penjodoh bilangan yang sesuai: 'Ibu membeli se______ pisang di pasar.'", opts: ["sisir", "biji", "batang", "helai"], ans: 0, exp: "Penjodoh bilangan bagi buah pisang dalam gugusan kecil ialah 'sisir'." }
+                    ]
+                },
+                Matematik: {
+                    4: [
+                        { q: "Apakah nilai tempat bagi digit 7 dalam nombor 72 305?", opts: ["Puluh ribu", "Ribu", "Ratus", "Sa"], ans: 0, exp: "Digit 7 berada pada kedudukan nilai tempat 'Puluh ribu'." }
+                    ]
+                }
+            },
+            SJKT: {
+                BT: {
+                    4: [
+                        { q: "கீழ்கண்டவற்றுள் எது சரியான பெயர்ச்சொல்?", opts: ["மரம்", "ஓடினான்", "வேகமாக", "அழகான"], ans: 0, exp: "'மரம்' என்பது ஒரு பெயர்ச்சொல் (Noun) ஆகும்." }
+                    ]
+                }
+            }
+        };
+
+        class GameEngine {
+            constructor() {
+                this.lang = 'en'; // Defaults to English for initial prompt
+                this.school = 'SJKC';
+                this.grade = 4;
+                this.subject = 'Math';
+                this.avatar = '🐯';
+                this.avatarName = 'Tiger Hero';
+                this.mode = 'adventure';
+
+                this.score = 0;
+                this.stars = 0;
+                this.lives = 3;
+                this.currentQuestionIdx = 0;
+                this.questions = [];
+                this.timerInterval = null;
+                this.timeLeft = 60;
+
+                this.heroAvatars = [
+                    { emoji: '🐯', name: { en: 'Tiger Hero', ms: 'Wira Harimau', zh: '小虎勇士' } },
+                    { emoji: '🦉', name: { en: 'Wise Owl', ms: 'Burung Hantu Bijak', zh: '智慧猫头鹰' } },
+                    { emoji: '🤖', name: { en: 'Tech Robot', ms: 'Robot Tekno', zh: '科技机器人' } },
+                    { emoji: '🐼', name: { en: 'Kung Fu Panda', ms: 'Panda Kung Fu', zh: '功夫熊猫' } }
+                ];
+            }
+
+            init() {
+                // Ensure starting step is Step 0 (Language choice prompt)
+                document.getElementById('step0-language').classList.remove('hidden');
+                document.getElementById('step1-setup').classList.add('hidden');
+                document.getElementById('step2-subject').classList.add('hidden');
+                document.getElementById('step3-game').classList.add('hidden');
+                document.getElementById('step4-result').classList.add('hidden');
+
+                this.renderGradeButtons();
+                this.renderHeroSelector();
+                this.selectSchool('SJKC');
+                this.selectGrade(4);
+                this.selectHero(0);
+                this.applyTranslations();
+            }
+
+            setInitialLanguage(selectedLang) {
+                this.lang = selectedLang;
+                document.getElementById('langSelector').value = selectedLang;
+                this.applyTranslations();
+
+                // Move from Step 0 to Step 1 setup
+                document.getElementById('step0-language').classList.add('hidden');
+                document.getElementById('step1-setup').classList.remove('hidden');
+            }
+
+            changeLanguage(newLang) {
+                this.lang = newLang;
+                this.applyTranslations();
+            }
+
+            applyTranslations() {
+                const dict = I18N[this.lang] || I18N['en'];
+                for (let key in dict) {
+                    const el = document.getElementById(`i18n-${key}`);
+                    if (el) {
+                        el.innerHTML = dict[key];
+                    }
+                }
+                
+                this.renderGradeButtons();
+                this.renderHeroSelector();
+                this.renderSubjects();
+            }
+
+            renderGradeButtons() {
+                const container = document.getElementById('gradeButtonsContainer');
+                container.innerHTML = '';
+                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
+
+                for (let i = 1; i <= 6; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = `grade-btn-${i}`;
+                    btn.onclick = () => this.selectGrade(i);
+                    const isSel = (this.grade === i);
+                    
+                    btn.className = `py-3 rounded-xl border-2 font-bold text-sm md:text-base transition flex flex-col items-center justify-center ${
+                        isSel 
+                            ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 shadow-md shadow-yellow-500/20' 
+                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-500'
+                    }`;
+                    btn.innerHTML = `<span>${this.lang === 'zh' ? `${i}${suffix}` : `${suffix} ${i}`}</span><span class="text-[10px] text-slate-400 font-normal">UASA ${i}</span>`;
+                    container.appendChild(btn);
+                }
+            }
+
+            renderHeroSelector() {
+                const container = document.getElementById('heroSelector');
+                container.innerHTML = '';
+                this.heroAvatars.forEach((h, idx) => {
+                    const card = document.createElement('div');
+                    card.id = `hero-card-${idx}`;
+                    card.onclick = () => this.selectHero(idx);
+                    const isSel = (this.avatar === h.emoji);
+
+                    card.className = `p-3 rounded-2xl border-2 cursor-pointer flex flex-col items-center justify-center transition ${
+                        isSel ? 'border-purple-400 bg-purple-500/20' : 'border-slate-700 bg-slate-800/60 hover:border-purple-400'
+                    }`;
+                    
+                    const heroName = h.name[this.lang] || h.name['en'];
+                    card.innerHTML = `
+                        <div class="text-3xl mb-1">${h.emoji}</div>
+                        <div class="text-xs font-bold text-slate-300 text-center">${heroName}</div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            selectSchool(type) {
+                this.school = type;
+                ['SJKC', 'SK', 'SJKT'].forEach(s => {
+                    const el = document.getElementById(`school-${s}`);
+                    if (el) {
+                        if (s === type) {
+                            el.classList.add('border-yellow-400', 'bg-yellow-500/10');
+                            el.classList.remove('border-slate-700', 'bg-slate-800/60');
+                        } else {
+                            el.classList.remove('border-yellow-400', 'bg-yellow-500/10');
+                            el.classList.add('border-slate-700', 'bg-slate-800/60');
+                        }
+                    }
+                });
+                this.checkSetupValid();
+            }
+
+            selectGrade(g) {
+                this.grade = g;
+                this.renderGradeButtons();
+                this.checkSetupValid();
+            }
+
+            selectHero(idx) {
+                this.avatar = this.heroAvatars[idx].emoji;
+                this.avatarName = this.heroAvatars[idx].name[this.lang] || this.heroAvatars[idx].name['en'];
+                this.renderHeroSelector();
+                this.checkSetupValid();
+            }
+
+            checkSetupValid() {
+                const btn = document.getElementById('btnGoToSubjects');
+                if (this.school && this.grade) {
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                }
+            }
+
+            goToSubjectSelect() {
+                document.getElementById('step1-setup').classList.add('hidden');
+                document.getElementById('step2-subject').classList.remove('hidden');
+
+                const schoolNames = { SJKC: 'SJK(C) 华小', SK: 'SK Kebangsaan', SJKT: 'SJK(T) 淡小' };
+                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
+                document.getElementById('profileBadge').innerText = `${schoolNames[this.school]} • UASA ${this.lang === 'zh' ? `${this.grade}${suffix}` : `${suffix} ${this.grade}`}`;
+
+                this.renderSubjects();
+            }
+
+            backToSetup() {
+                document.getElementById('step2-subject').classList.add('hidden');
+                document.getElementById('step1-setup').classList.remove('hidden');
+            }
+
+            renderSubjects() {
+                const subjectGrid = document.getElementById('subjectGrid');
+                if (!subjectGrid) return;
+                subjectGrid.innerHTML = '';
+
+                let subjectsList = [];
+                if (this.school === 'SJKC') {
+                    subjectsList = [
+                        { key: 'BC', name: 'Bahasa Cina (华文)', icon: 'fa-book-open', color: 'text-red-400' },
+                        { key: 'Math', name: 'Matematik (数学)', icon: 'fa-calculator', color: 'text-blue-400' },
+                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
+                        { key: 'BI', name: 'English', icon: 'fa-font', color: 'text-emerald-400' },
+                        { key: 'Science', name: 'Sains (科学)', icon: 'fa-flask', color: 'text-purple-400' }
+                    ];
+                } else if (this.school === 'SK') {
+                    subjectsList = [
+                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
+                        { key: 'Matematik', name: 'Matematik', icon: 'fa-calculator', color: 'text-blue-400' },
+                        { key: 'English', name: 'English', icon: 'fa-font', color: 'text-emerald-400' },
+                        { key: 'Sains', name: 'Sains', icon: 'fa-flask', color: 'text-purple-400' }
+                    ];
+                } else {
+                    subjectsList = [
+                        { key: 'BT', name: 'தமிழ்மொழி (Tamil)', icon: 'fa-om', color: 'text-emerald-400' },
+                        { key: 'Matematik', name: 'Matematik', icon: 'fa-calculator', color: 'text-blue-400' },
+                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
+                        { key: 'English', name: 'English', icon: 'fa-font', color: 'text-sky-400' }
+                    ];
+                }
+
+                if (!this.subject) this.subject = subjectsList[0].key;
+
+                subjectsList.forEach((sub) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.id = `sub-btn-${sub.key}`;
+                    btn.onclick = () => this.selectSubject(sub.key);
+                    const isSel = (this.subject === sub.key);
+
+                    btn.className = `p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between ${
+                        isSel ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-700 bg-slate-800/60'
+                    }`;
+                    btn.innerHTML = `
+                        <i class="fa-solid ${sub.icon} ${sub.color} text-2xl mb-2"></i>
+                        <span class="font-bold text-white text-sm">${sub.name}</span>
+                    `;
+                    subjectGrid.appendChild(btn);
+                });
+            }
+
+            selectSubject(key) {
+                this.subject = key;
+                this.renderSubjects();
+            }
+
+            selectMode(m) {
+                this.mode = m;
+                ['adventure', 'timeattack', 'ai'].forEach(modeKey => {
+                    const card = document.getElementById(`mode-${modeKey}`);
+                    if (card) {
+                        if (modeKey === m) {
+                            card.className = 'mode-card p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition';
+                        } else {
+                            card.className = 'mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition';
+                        }
+                    }
+                });
+            }
+
+            async startGame() {
+                this.score = 0;
+                this.currentQuestionIdx = 0;
+                this.lives = 3;
+                this.timeLeft = 60;
+
+                document.getElementById('step2-subject').classList.add('hidden');
+                document.getElementById('step4-result').classList.add('hidden');
+                document.getElementById('step3-game').classList.remove('hidden');
+                document.getElementById('topStatsBar').classList.remove('hidden');
+
+                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
+                document.getElementById('heroMiniAvatar').innerText = this.avatar;
+                document.getElementById('heroBattleSprite').innerText = this.avatar;
+                document.getElementById('heroNameLabel').innerText = this.avatarName;
+                document.getElementById('monsterNameLabel').innerText = I18N[this.lang]?.monsterName || 'UASA Quiz Monster';
+                document.getElementById('currentSubjectTag').innerText = `${this.subject} • UASA ${this.lang === 'zh' ? `${this.grade}${suffix}` : `${suffix} ${this.grade}`}`;
+
+                this.updateLivesDisplay();
+
+                const monsterArea = document.getElementById('monsterBattleArea');
+                const timerContainer = document.getElementById('timerContainer');
+
+                if (this.mode === 'timeattack') {
+                    monsterArea.classList.add('hidden');
+                    timerContainer.classList.remove('hidden');
+                    this.startTimer();
+                } else {
+                    monsterArea.classList.remove('hidden');
+                    timerContainer.classList.add('hidden');
+                }
+
+                if (this.mode === 'ai') {
+                    await this.fetchAIQuestions();
+                } else {
+                    this.loadPresetQuestions();
+                }
+
+                this.renderCurrentQuestion();
+            }
+
+            loadPresetQuestions() {
+                let qs = [];
+                try {
+                    qs = UASA_QUESTION_BANK[this.school][this.subject][this.grade] || [];
+                } catch(e) {}
+
+                if (!qs || qs.length === 0) {
+                    qs = [
+                        { q: "UASA Practice Q1: Selesaikan / Calculate 450 + 280 = ?", opts: ["730", "720", "740", "710"], ans: 0, exp: "450 + 280 = 730." },
+                        { q: "UASA Practice Q2: Selesaikan / Calculate 12 × 5 = ?", opts: ["60", "50", "55", "65"], ans: 0, exp: "12 × 5 = 60." },
+                        { q: "UASA Practice Q3: Selesaikan / Calculate 500 - 185 = ?", opts: ["315", "325", "305", "335"], ans: 0, exp: "500 - 185 = 315." }
+                    ];
+                }
+                this.questions = qs;
+            }
+
+            async fetchAIQuestions() {
+                document.getElementById('aiLoadingOverlay').classList.remove('hidden');
+                document.getElementById('questionDisplayCard').classList.add('hidden');
+                document.getElementById('optionsContainer').classList.add('hidden');
+
+                const langName = this.lang === 'ms' ? 'Bahasa Melayu' : (this.lang === 'en' ? 'English' : '华文');
+                const systemPrompt = `You are a Malaysian primary education syllabus expert for UASA (Ujian Akhir Sesi Akademik) & KSSR Semakan. Generate 4 multiple-choice questions for ${this.school} stream, Standard ${this.grade}, in the subject ${this.subject}. Language: ${langName}.`;
+                const userPrompt = `Return JSON array with 4 objects. Each object has: q (question string), opts (array of 4 option strings), ans (correct index 0-3), exp (explanation string in the same language).`;
+
+                try {
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                    const payload = {
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        "q": { "type": "STRING" },
+                                        "opts": { "type": "ARRAY", "items": { "type": "STRING" } },
+                                        "ans": { "type": "INTEGER" },
+                                        "exp": { "type": "STRING" }
+                                    },
+                                    required: ["q", "opts", "ans", "exp"]
+                                }
+                            }
+                        }
+                    };
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (textResult) {
+                        this.questions = JSON.parse(textResult);
+                    } else {
+                        throw new Error("Invalid format");
+                    }
+                } catch (err) {
+                    console.warn("AI generation fallback to preset:", err);
+                    this.loadPresetQuestions();
+                } finally {
+                    document.getElementById('aiLoadingOverlay').classList.add('hidden');
+                    document.getElementById('questionDisplayCard').classList.remove('hidden');
+                    document.getElementById('optionsContainer').classList.remove('hidden');
+                }
+            }
+
+            renderCurrentQuestion() {
+                if (this.currentQuestionIdx >= this.questions.length) {
+                    this.endGame(true);
+                    return;
+                }
+
+                const currentQ = this.questions[this.currentQuestionIdx];
+                const qLabel = this.lang === 'ms' ? 'Soalan' : (this.lang === 'en' ? 'Question' : '第');
+                const qSuffix = this.lang === 'zh' ? '题' : '';
+
+                document.getElementById('levelStageLabel').innerText = `${qLabel} ${this.currentQuestionIdx + 1} / ${this.questions.length} ${qSuffix}`;
+                document.getElementById('qCategoryHeader').innerText = `UASA BAHAGIAN A • ${this.school} STANDARD ${this.grade}`;
+                document.getElementById('questionText').innerText = currentQ.q;
+
+                const hpPercent = 100 - (this.currentQuestionIdx / this.questions.length) * 100;
+                document.getElementById('monsterHpBar').style.width = `${hpPercent}%`;
+
+                document.getElementById('explanationBox').classList.add('hidden');
+
+                const optsContainer = document.getElementById('optionsContainer');
+                optsContainer.innerHTML = '';
+
+                const optionPrefixes = ['A', 'B', 'C', 'D'];
+                currentQ.opts.forEach((optText, idx) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.onclick = (e) => this.checkAnswer(idx, e);
+                    btn.className = `option-btn p-4 rounded-2xl border-2 border-slate-700 bg-slate-800 hover:border-amber-400 hover:bg-slate-700 transition font-semibold text-white text-left flex items-center space-x-3 active:scale-98`;
+                    btn.innerHTML = `
+                        <span class="w-8 h-8 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-amber-400 text-sm shrink-0">${optionPrefixes[idx]}</span>
+                        <span class="text-sm md:text-base">${optText}</span>
+                    `;
+                    optsContainer.appendChild(btn);
+                });
+            }
+
+            checkAnswer(selectedIndex, event) {
+                const currentQ = this.questions[this.currentQuestionIdx];
+                const buttons = document.querySelectorAll('.option-btn');
+                
+                buttons.forEach(btn => btn.disabled = true);
+
+                if (selectedIndex === currentQ.ans) {
+                    audioManager.playCorrect();
+                    buttons[selectedIndex].classList.add('border-emerald-500', 'bg-emerald-500/20');
+                    this.score += 100;
+                    document.getElementById('playerScore').innerText = this.score;
+
+                    if (event && event.clientX) {
+                        fxSystem.burst(event.clientX, event.clientY, 30);
+                    } else {
+                        fxSystem.burst(window.innerWidth / 2, window.innerHeight / 2, 40);
+                    }
+
+                    const monster = document.getElementById('monsterSprite');
+                    if (monster) {
+                        monster.classList.add('animate-ping');
+                        setTimeout(() => monster.classList.remove('animate-ping'), 500);
+                    }
+                } else {
+                    audioManager.playWrong();
+                    buttons[selectedIndex].classList.add('border-red-500', 'bg-red-500/20');
+                    buttons[currentQ.ans].classList.add('border-emerald-500', 'bg-emerald-500/20');
+
+                    this.lives--;
+                    this.updateLivesDisplay();
+
+                    if (this.lives <= 0 && this.mode !== 'timeattack') {
+                        setTimeout(() => this.endGame(false), 1200);
+                        return;
+                    }
+                }
+
+                document.getElementById('explanationText').innerText = currentQ.exp || "UASA standard explanation.";
+                document.getElementById('explanationBox').classList.remove('hidden');
+            }
+
+            nextQuestion() {
+                this.currentQuestionIdx++;
+                this.renderCurrentQuestion();
+            }
+
+            updateLivesDisplay() {
+                const container = document.getElementById('livesContainer');
+                container.innerHTML = '';
+                for (let i = 0; i < 3; i++) {
+                    const heart = document.createElement('i');
+                    if (i < this.lives) {
+                        heart.className = 'fa-solid fa-heart text-red-500 text-base md:text-lg mr-0.5';
+                    } else {
+                        heart.className = 'fa-regular fa-heart text-slate-600 text-base md:text-lg mr-0.5';
+                    }
+                    container.appendChild(heart);
+                }
+            }
+
+            startTimer() {
+                clearInterval(this.timerInterval);
+                this.timerInterval = setInterval(() => {
+                    this.timeLeft--;
+                    document.getElementById('gameTimer').innerText = `${this.timeLeft}s`;
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timerInterval);
+                        this.endGame(true);
+                    }
+                }, 1000);
+            }
+
+            endGame(isVictory) {
+                clearInterval(this.timerInterval);
+                document.getElementById('step3-game').classList.add('hidden');
+                document.getElementById('step4-result').classList.remove('hidden');
+
+                const dict = I18N[this.lang] || I18N['en'];
+
+                if (isVictory) {
+                    audioManager.playVictory();
+                    fxSystem.burst(window.innerWidth / 2, window.innerHeight / 3, 70);
+                    document.getElementById('resultTitle').innerText = dict.resVictoryTitle;
+                    document.getElementById('resultSubtitle').innerText = dict.resVictorySub;
+                    this.stars += 3;
+                } else {
+                    document.getElementById('resultTitle').innerText = dict.resDefeatTitle;
+                    document.getElementById('resultSubtitle').innerText = dict.resDefeatSub;
+                    this.stars += 1;
+                }
+
+                document.getElementById('playerStars').innerText = this.stars;
+                document.getElementById('finalStars').innerText = `+${isVictory ? 3 : 1}`;
+                document.getElementById('finalScore').innerText = this.score;
+                
+                const accuracy = this.questions.length > 0 
+                    ? Math.round((this.score / (this.questions.length * 100)) * 100) 
+                    : 0;
+                document.getElementById('finalAccuracy').innerText = `${Math.min(100, accuracy)}%`;
+
+                // Calculate UASA Tahap Penguasaan (TP Band 1 - 6)
+                let tpBand = "TP 6 (Cemerlang)";
+                if (accuracy < 40) tpBand = "TP 1 - TP 2 (Mencapai Tahap Minimal)";
+                else if (accuracy < 60) tpBand = "TP 3 (Memuaskan)";
+                else if (accuracy < 80) tpBand = "TP 4 (Baik)";
+                else if (accuracy < 90) tpBand = "TP 5 (Sangat Baik)";
+
+                document.getElementById('tpBandValue').innerText = tpBand;
+            }
+
+            resetToHome() {
+                clearInterval(this.timerInterval);
+                document.getElementById('step3-game').classList.add('hidden');
+                document.getElementById('step4-result').classList.add('hidden');
+                document.getElementById('step2-subject').classList.add('hidden');
+                document.getElementById('step1-setup').classList.add('hidden');
+                document.getElementById('step0-language').classList.remove('hidden');
+            }
+        }
+
+        // INITIALIZE APP
+        let game;
+        window.onload = function() {
+            fxSystem = new ParticleSystem();
+            game = new GameEngine();
+            game.init();
+        };
+    </script>
 </body>
 </html>
