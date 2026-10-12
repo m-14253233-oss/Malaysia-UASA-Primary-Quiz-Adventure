@@ -77,9 +77,9 @@
                 <div class="relative flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2 py-1 text-xs md:text-sm text-slate-200">
                     <i class="fa-solid fa-globe text-yellow-400 mr-1.5"></i>
                     <select id="langSelector" onchange="game.changeLanguage(this.value)" class="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer pr-1">
-                        <option value="en" class="bg-slate-900 text-white">English</option>
-                        <option value="ms" class="bg-slate-900 text-white">Bahasa Melayu</option>
                         <option value="zh" class="bg-slate-900 text-white">华文 (ZH)</option>
+                        <option value="ms" class="bg-slate-900 text-white">Bahasa Melayu</option>
+                        <option value="en" class="bg-slate-900 text-white">English</option>
                     </select>
                 </div>
 
@@ -104,7 +104,7 @@
 
     <main class="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center items-center relative z-10">
         
-        <!-- STEP 0: INITIAL LANGUAGE SELECTION (FIRST SCREEN) -->
+        <!-- STEP 0: INITIAL LANGUAGE SELECTION -->
         <section id="step0-language" class="w-full max-w-2xl glass-card rounded-3xl p-6 md:p-10 shadow-2xl transition-all duration-300 text-center animate-fade-in">
             <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-yellow-400 to-amber-500 flex items-center justify-center text-4xl shadow-xl shadow-yellow-500/20 mb-6">
                 🌐
@@ -115,17 +115,17 @@
             </span>
 
             <h2 class="text-2xl md:text-4xl font-extrabold text-white font-game mb-3 leading-tight">
-                Which language would you like to use?
+                请选择您的界面语言 / Select Language
             </h2>
             <p class="text-slate-300 text-sm md:text-base mb-8">
-                Please select your preferred language for the UASA (Ujian Akhir Sesi Akademik) practice experience:
+                选择您偏好的语言，开启 UASA (Ujian Akhir Sesi Akademik) 模拟练习闯关：
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <button onclick="game.setInitialLanguage('en')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-yellow-400 hover:bg-yellow-500/10 transition-all flex flex-col items-center justify-center shadow-md">
-                    <span class="text-3xl mb-2">🇬🇧</span>
-                    <span class="font-bold text-white group-hover:text-yellow-400 text-base">English</span>
-                    <span class="text-xs text-slate-400 mt-0.5">Primary English</span>
+                <button onclick="game.setInitialLanguage('zh')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-red-400 hover:bg-red-500/10 transition-all flex flex-col items-center justify-center shadow-md">
+                    <span class="text-3xl mb-2">🇨🇳</span>
+                    <span class="font-bold text-white group-hover:text-red-400 text-base">华文 (Chinese)</span>
+                    <span class="text-xs text-slate-400 mt-0.5">SJK(C) 华小学具</span>
                 </button>
 
                 <button onclick="game.setInitialLanguage('ms')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-blue-400 hover:bg-blue-500/10 transition-all flex flex-col items-center justify-center shadow-md">
@@ -134,10 +134,10 @@
                     <span class="text-xs text-slate-400 mt-0.5">Bahasa Kebangsaan</span>
                 </button>
 
-                <button onclick="game.setInitialLanguage('zh')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-red-400 hover:bg-red-500/10 transition-all flex flex-col items-center justify-center shadow-md">
-                    <span class="text-3xl mb-2">🇨🇳</span>
-                    <span class="font-bold text-white group-hover:text-red-400 text-base">华文 (Chinese)</span>
-                    <span class="text-xs text-slate-400 mt-0.5">SJK(C) 华小学具</span>
+                <button onclick="game.setInitialLanguage('en')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-yellow-400 hover:bg-yellow-500/10 transition-all flex flex-col items-center justify-center shadow-md">
+                    <span class="text-3xl mb-2">🇬🇧</span>
+                    <span class="font-bold text-white group-hover:text-yellow-400 text-base">English</span>
+                    <span class="text-xs text-slate-400 mt-0.5">Primary English</span>
                 </button>
             </div>
         </section>
@@ -223,7 +223,7 @@
             </div>
         </section>
 
-        <!-- STEP 2: SUBJECT & MODE SELECTION -->
+        <!-- STEP 2: SUBJECT, UNIT & MODE SELECTION -->
         <section id="step2-subject" class="w-full glass-card rounded-3xl p-5 md:p-8 shadow-2xl hidden transition-all duration-300">
             <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
                 <button onclick="game.backToSetup()" class="text-slate-400 hover:text-white flex items-center text-sm font-semibold transition">
@@ -234,10 +234,18 @@
                 </div>
             </div>
 
-            <h2 class="text-2xl font-bold text-white font-game mb-4" id="i18n-selectSubjectTitle">Select UASA Subject</h2>
+            <!-- Subject Choice -->
+            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3" id="i18n-selectSubjectTitle">1. Select UASA Subject</h2>
             <div id="subjectGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
 
-            <h2 class="text-xl font-bold text-white font-game mb-3" id="i18n-selectModeTitle">Select Challenge Mode</h2>
+            <!-- Unit / Chapter Choice -->
+            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3 flex items-center gap-2" id="i18n-selectUnitTitle">
+                <i class="fa-solid fa-layer-group text-yellow-400 text-lg"></i> 2. Select Practice Scope (Unit / Comprehensive)
+            </h2>
+            <div id="unitGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6"></div>
+
+            <!-- Game Mode Choice -->
+            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3" id="i18n-selectModeTitle">3. Select Challenge Mode</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
                 <div onclick="game.selectMode('adventure')" id="mode-adventure" 
                     class="mode-card p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition">
@@ -411,43 +419,44 @@
     <script>
         // MULTI-LANGUAGE TRANSLATION DICTIONARY
         const I18N = {
-            en: {
-                appName: "UASA Primary Quiz Adventure",
+            zh: {
+                appName: "全马 UASA 智力大冒险",
                 appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
-                badgeKssr: "🇲🇾 Format UASA & KSSR Semakan Aligned",
-                heroSetupTitle: "Create Your Learning Hero",
-                heroSetupDesc: "Select your school stream and standard to begin!",
-                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Select School Stream (Jenis Sekolah):",
-                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Select Standard / Grade (UASA Assessment Level):",
-                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Select Hero Companion:",
-                nextSubjectBtn: "Next: Choose UASA Subject",
-                backSetup: "Change School / Standard",
-                selectSubjectTitle: "Select UASA Subject",
-                selectModeTitle: "Select Challenge Mode",
-                modeAdventureTitle: "UASA Section A Battle",
-                modeAdventureDesc: "Answer objective questions to defeat monsters!",
-                modeTimeAttackTitle: "60s UASA Speed Sprint",
-                modeTimeAttackDesc: "Fast-paced quick response practice!",
-                modeAiTitle: "AI UASA Generator <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI generates live endless UASA questions!",
-                startGameBtn: "Start UASA Challenge!",
-                explanationTitle: "UASA Explanation / Penjelasan:",
-                nextQBtn: "Next Question",
-                totalScore: "Total Score",
-                accuracy: "Accuracy",
-                starsEarned: "Stars Earned",
-                playAgain: "Try Again",
-                backHome: "Main Menu",
-                aiLoading: "Gemini AI is generating UASA questions...",
-                aiLoadingSub: "Aligned with KSSR Semakan & UASA Exam Standards...",
-                footerText: "Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz",
-                gradeSuffix: "Std",
-                resVictoryTitle: "🎉 UASA Practice Victory!",
-                resVictorySub: "Outstanding performance! You mastered this session!",
-                resDefeatTitle: "💪 Keep Practice Going!",
-                resDefeatSub: "Review the answers and try again to improve your UASA score!",
-                monsterName: "UASA Quiz Monster",
-                tpLabel: "UASA Performance Level:"
+                badgeKssr: "🇲🇾 适配 UASA 格式与 KSSR Semakan 课程",
+                heroSetupTitle: "创建你的学习勇士角色",
+                heroSetupDesc: "选择学校源流与年级，开始 UASA 模拟练习！",
+                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> 选择学校源流 (Jenis Sekolah):",
+                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> 选择年级 (UASA 评估级别):",
+                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> 选择英雄小伙伴:",
+                nextSubjectBtn: "下一步：选择 UASA 科目与单元",
+                backSetup: "重选学校/年级",
+                selectSubjectTitle: "1. 选择 UASA 评估科目",
+                selectUnitTitle: "2. 选择练习范围 (单元 / 综合练习)",
+                selectModeTitle: "3. 选择挑战模式",
+                modeAdventureTitle: "UASA 甲组 (Bahagian A) 闯关",
+                modeAdventureDesc: "解答单选题击败怪兽，赢取学业优胜！",
+                modeTimeAttackTitle: "60秒 UASA 限时冲刺",
+                modeTimeAttackDesc: "考验答题速度与敏捷度！",
+                modeAiTitle: "AI 智能 UASA 出题 <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
+                modeAiDesc: "AI 实时依据大纲或所选单元生成全新题目！",
+                startGameBtn: "开启 UASA 练习！",
+                explanationTitle: "UASA 答案解析 / Penjelasan:",
+                nextQBtn: "下一题",
+                totalScore: "获得总分",
+                accuracy: "正确率",
+                starsEarned: "收获星星",
+                playAgain: "再玩一次",
+                backHome: "返回主页",
+                aiLoading: "Gemini AI 正在生成 UASA 题目...",
+                aiLoadingSub: "针对您选择的单元与 KSSR Semakan 课程标准...",
+                footerText: "马来西亚 UASA (Ujian Akhir Sesi Akademik) 华小 • 国小 • 淡小 智力闯关",
+                gradeSuffix: "年级",
+                resVictoryTitle: "🎉 UASA 闯关成功！",
+                resVictorySub: "太棒了！你的表现达到优异标准！",
+                resDefeatTitle: "💪 继续加油，再接再厉！",
+                resDefeatSub: "查阅解析并重新练习，提升你的 UASA 成绩！",
+                monsterName: "UASA 知识小怪兽",
+                tpLabel: "UASA 掌握级别 (Tahap Penguasaan):"
             },
             ms: {
                 appName: "Pengembaraan Kuiz UASA Sekolah MY",
@@ -458,16 +467,17 @@
                 schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Pilih Aliran Sekolah (Jenis Sekolah):",
                 gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Pilih Tahun / Darjah (Tahap UASA):",
                 heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Pilih Rakan Wira:",
-                nextSubjectBtn: "Seterusnya: Pilih Subjek UASA",
+                nextSubjectBtn: "Seterusnya: Pilih Subjek & Unit",
                 backSetup: "Tukar Sekolah / Darjah",
-                selectSubjectTitle: "Pilih Subjek UASA",
-                selectModeTitle: "Pilih Mod Cabaran",
+                selectSubjectTitle: "1. Pilih Subjek UASA",
+                selectUnitTitle: "2. Pilih Cakupan Latihan (Unit / Komprehensif)",
+                selectModeTitle: "3. Pilih Mod Cabaran",
                 modeAdventureTitle: "Cabaran UASA Bahagian A",
                 modeAdventureDesc: "Jawab soalan objektif untuk menewaskan raksasa!",
                 modeTimeAttackTitle: "Pecutan 60 Saat UASA",
                 modeTimeAttackDesc: "Uji kepantasan dan ketepatan jawapan anda!",
                 modeAiTitle: "Penjana AI UASA <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI menjana soalan UASA baharu secara langsung!",
+                modeAiDesc: "AI menjana soalan mengikut unit yang dipilih!",
                 startGameBtn: "Mula Permainan UASA!",
                 explanationTitle: "Penjelasan / Explanation:",
                 nextQBtn: "Soalan Seterusnya",
@@ -477,7 +487,7 @@
                 playAgain: "Main Lagi",
                 backHome: "Halaman Utama",
                 aiLoading: "Gemini AI sedang menjana soalan UASA...",
-                aiLoadingSub: "Mengikut Kurikulum KSSR Semakan & Format UASA...",
+                aiLoadingSub: "Mengikut Unit & Kurikulum KSSR Semakan...",
                 footerText: "Kuiz Pintar UASA (Ujian Akhir Sesi Akademik) SJKC • SK • SJKT Malaysia",
                 gradeSuffix: "Tahun",
                 resVictoryTitle: "🎉 Tahniah! Latihan UASA Berjaya!",
@@ -487,44 +497,111 @@
                 monsterName: "Raksasa UASA",
                 tpLabel: "Tahap Penguasaan UASA:"
             },
-            zh: {
-                appName: "全马 UASA 智力大冒险",
+            en: {
+                appName: "UASA Primary Quiz Adventure",
                 appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
-                badgeKssr: "🇲🇾 适配 UASA 格式与 KSSR Semakan 课程",
-                heroSetupTitle: "创建你的学习勇士角色",
-                heroSetupDesc: "选择学校源流与年级，开始 UASA 模拟练习！",
-                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> 选择学校源流 (Jenis Sekolah):",
-                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> 选择年级 (UASA 评估级别):",
-                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> 选择英雄小伙伴:",
-                nextSubjectBtn: "下一步：选择 UASA 科目",
-                backSetup: "重选学校/年级",
-                selectSubjectTitle: "选择 UASA 评估科目",
-                selectModeTitle: "选择模式",
-                modeAdventureTitle: "UASA 甲组 (Bahagian A) 闯关",
-                modeAdventureDesc: "解答单选题击败怪兽，赢取学业优胜！",
-                modeTimeAttackTitle: "60秒 UASA 限时冲刺",
-                modeTimeAttackDesc: "考验答题速度与敏捷度！",
-                modeAiTitle: "AI 智能 UASA 出题 <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI 实时依据 UASA 大纲生成无限全新题目！",
-                startGameBtn: "开启 UASA 挑战！",
-                explanationTitle: "UASA 答案解析 / Penjelasan:",
-                nextQBtn: "下一题",
-                totalScore: "获得总分",
-                accuracy: "正确率",
-                starsEarned: "收获星星",
-                playAgain: "再玩一次",
-                backHome: "返回主页",
-                aiLoading: "Gemini AI 正在生成 UASA 评估题目...",
-                aiLoadingSub: "根据马来西亚 UASA 与 KSSR Semakan 课程标准...",
-                footerText: "马来西亚 UASA (Ujian Akhir Sesi Akademik) 华小 • 国小 • 淡小 智力闯关",
-                gradeSuffix: "年级",
-                resVictoryTitle: "🎉 UASA 闯关成功！",
-                resVictorySub: "太棒了！你的表现达到优异标准！",
-                resDefeatTitle: "💪 继续加油，再接再厉！",
-                resDefeatSub: "查阅解析并重新练习，提升你的 UASA 成绩！",
-                monsterName: "UASA 知识小怪兽",
-                tpLabel: "UASA 掌握级别 (Tahap Penguasaan):"
+                badgeKssr: "🇲🇾 Format UASA & KSSR Semakan Aligned",
+                heroSetupTitle: "Create Your Learning Hero",
+                heroSetupDesc: "Select your school stream and standard to begin!",
+                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Select School Stream (Jenis Sekolah):",
+                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Select Standard / Grade (UASA Assessment Level):",
+                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Select Hero Companion:",
+                nextSubjectBtn: "Next: Choose Subject & Unit",
+                backSetup: "Change School / Standard",
+                selectSubjectTitle: "1. Select UASA Subject",
+                selectUnitTitle: "2. Select Practice Scope (Unit / Comprehensive)",
+                selectModeTitle: "3. Select Challenge Mode",
+                modeAdventureTitle: "UASA Section A Battle",
+                modeAdventureDesc: "Answer objective questions to defeat monsters!",
+                modeTimeAttackTitle: "60s UASA Speed Sprint",
+                modeTimeAttackDesc: "Fast-paced quick response practice!",
+                modeAiTitle: "AI UASA Generator <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
+                modeAiDesc: "AI generates live questions according to selected unit!",
+                startGameBtn: "Start UASA Challenge!",
+                explanationTitle: "UASA Explanation / Penjelasan:",
+                nextQBtn: "Next Question",
+                totalScore: "Total Score",
+                accuracy: "Accuracy",
+                starsEarned: "Stars Earned",
+                playAgain: "Try Again",
+                backHome: "Main Menu",
+                aiLoading: "Gemini AI is generating UASA questions...",
+                aiLoadingSub: "Aligned with your chosen Unit & KSSR Semakan...",
+                footerText: "Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz",
+                gradeSuffix: "Std",
+                resVictoryTitle: "🎉 UASA Practice Victory!",
+                resVictorySub: "Outstanding performance! You mastered this session!",
+                resDefeatTitle: "💪 Keep Practice Going!",
+                resDefeatSub: "Review the answers and try again to improve your UASA score!",
+                monsterName: "UASA Quiz Monster",
+                tpLabel: "UASA Performance Level:"
             }
+        };
+
+        // KSSR UNIT SYLLABUS DEFINITIONS BY SUBJECT
+        const UNITS_DATABASE = {
+            BC: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: '单元一：词语理解与短语分析', ms: 'Unit 1: Pemahaman Kosa Kata', en: 'Unit 1: Vocabulary & Phrases' },
+                { id: 'u2', zh: '单元二：成语应用与修辞手法', ms: 'Unit 2: Peribahasa & Simpulan Bahasa', en: 'Unit 2: Idioms & Figurative Language' },
+                { id: 'u3', zh: '单元三：句型转换与标点符号', ms: 'Unit 3: Structur Ayat & Tanda Baca', en: 'Unit 3: Sentence Types & Punctuation' },
+                { id: 'u4', zh: '单元四：阅读理解与逻辑思维', ms: 'Unit 4: Pemahaman Petikan', en: 'Unit 4: Reading Comprehension' }
+            ],
+            BM: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'Unit 1: Tatabahasa & Penjodoh Bilangan', ms: 'Unit 1: Tatabahasa & Penjodoh Bilangan', en: 'Unit 1: Grammar & Classifiers' },
+                { id: 'u2', zh: 'Unit 2: Kata Ganda & Imbuhan', ms: 'Unit 2: Kata Ganda & Imbuhan', en: 'Unit 2: Reduplicated Words & Affixes' },
+                { id: 'u3', zh: 'Unit 3: Peribahasa & Simpulan Bahasa', ms: 'Unit 3: Peribahasa & Simpulan Bahasa', en: 'Unit 3: Proverbs & Idioms' },
+                { id: 'u4', zh: 'Unit 4: Pemahaman Petikan & Kesalahan Ejaan', ms: 'Unit 4: Pemahaman Petikan & Kesalahan Ejaan', en: 'Unit 4: Comprehension & Spelling' }
+            ],
+            BI: [
+                { id: 'all', zh: '📚 全册综合练习 (Full Mock Test)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', ms: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', en: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)' },
+                { id: 'u2', zh: 'Unit 2: Tenses & Sentence Construction', ms: 'Unit 2: Tenses & Sentence Construction', en: 'Unit 2: Tenses & Sentence Construction' },
+                { id: 'u3', zh: 'Unit 3: Vocabulary & Contextual Meaning', ms: 'Unit 3: Vocabulary & Contextual Meaning', en: 'Unit 3: Vocabulary & Contextual Meaning' },
+                { id: 'u4', zh: 'Unit 4: Reading Comprehension & Inference', ms: 'Unit 4: Reading Comprehension & Inference', en: 'Unit 4: Reading Comprehension & Inference' }
+            ],
+            English: [
+                { id: 'all', zh: '📚 全册综合练习 (Full Mock Test)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', ms: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', en: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)' },
+                { id: 'u2', zh: 'Unit 2: Tenses & Sentence Construction', ms: 'Unit 2: Tenses & Sentence Construction', en: 'Unit 2: Tenses & Sentence Construction' },
+                { id: 'u3', zh: 'Unit 3: Vocabulary & Contextual Meaning', ms: 'Unit 3: Vocabulary & Contextual Meaning', en: 'Unit 3: Vocabulary & Contextual Meaning' },
+                { id: 'u4', zh: 'Unit 4: Reading Comprehension & Inference', ms: 'Unit 4: Reading Comprehension & Inference', en: 'Unit 4: Reading Comprehension & Inference' }
+            ],
+            Math: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: '单元 1：整数与基本运算 (Nombor Bulat)', ms: 'Unit 1: Nombor Bulat & Operasi Asas', en: 'Unit 1: Whole Numbers & Operations' },
+                { id: 'u2', zh: '单元 2：分数、小数与百分比', ms: 'Unit 2: Pecahan, Perpuluhan & Peratus', en: 'Unit 2: Fractions, Decimals & Percentages' },
+                { id: 'u3', zh: '单元 3：钱币与度量衡 (Wang & Ukuran)', ms: 'Unit 3: Wang, Panjang, Jisim & Isipadu', en: 'Unit 3: Money & Measurements' },
+                { id: 'u4', zh: '单元 4：时间、空间与数据处理', ms: 'Unit 4: Masa, Ruang & Pengendalian Data', en: 'Unit 4: Time, Shape & Data Analysis' }
+            ],
+            Matematik: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'Unit 1: Nombor Bulat & Operasi Asas', ms: 'Unit 1: Nombor Bulat & Operasi Asas', en: 'Unit 1: Whole Numbers & Operations' },
+                { id: 'u2', zh: 'Unit 2: Pecahan, Perpuluhan & Peratus', ms: 'Unit 2: Pecahan, Perpuluhan & Peratus', en: 'Unit 2: Fractions, Decimals & Percentages' },
+                { id: 'u3', zh: 'Unit 3: Wang & Pengukuran', ms: 'Unit 3: Wang & Pengukuran', en: 'Unit 3: Money & Measurements' },
+                { id: 'u4', zh: 'Unit 4: Masa, Ruang & Pengendalian Data', ms: 'Unit 4: Masa, Ruang & Pengendalian Data', en: 'Unit 4: Time, Shape & Data Analysis' }
+            ],
+            Science: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: '单元 1：科学技能 (Kemahiran Saintifik)', ms: 'Unit 1: Kemahiran Saintifik', en: 'Unit 1: Scientific Skills' },
+                { id: 'u2', zh: '单元 2：生命科学 (Sains Hayat - 人类/植物)', ms: 'Unit 2: Sains Hayat (Manusia & Tumbuhan)', en: 'Unit 2: Life Science (Humans & Plants)' },
+                { id: 'u3', zh: '单元 3：物理科学 (光/声音/能)', ms: 'Unit 3: Sains Fizikal (Cahaya, Bunyi & Tenaga)', en: 'Unit 3: Physical Science (Light, Sound, Energy)' },
+                { id: 'u4', zh: '单元 4：材料与地球科学', ms: 'Unit 4: Sains Bahan & Bumi', en: 'Unit 4: Material & Earth Sciences' }
+            ],
+            Sains: [
+                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'Unit 1: Kemahiran Saintifik', ms: 'Unit 1: Kemahiran Saintifik', en: 'Unit 1: Scientific Skills' },
+                { id: 'u2', zh: 'Unit 2: Sains Hayat (Manusia, Haiwan & Tumbuhan)', ms: 'Unit 2: Sains Hayat', en: 'Unit 2: Life Science' },
+                { id: 'u3', zh: 'Unit 3: Sains Fizikal (Cahaya & Tenaga)', ms: 'Unit 3: Sains Fizikal', en: 'Unit 3: Physical Science' },
+                { id: 'u4', zh: 'Unit 4: Sains Bahan & Bumi', ms: 'Unit 4: Sains Bahan & Bumi', en: 'Unit 4: Material & Earth Sciences' }
+            ],
+            BT: [
+                { id: 'all', zh: '📚 全册综合练习 (Comprehensive)', ms: '📚 Set Latihan Komprehensif', en: '📚 Full Syllabus Comprehensive Test' },
+                { id: 'u1', zh: 'அலகு 1: இலக்கணம் (Grammar)', ms: 'Unit 1: Tata Bahasa Tamil', en: 'Unit 1: Tamil Grammar' },
+                { id: 'u2', zh: 'அலகு 2: சொற்களஞ்சியம் (Vocabulary)', ms: 'Unit 2: Kosa Kata', en: 'Unit 2: Vocabulary' },
+                { id: 'u3', zh: 'அலகு 3: வாசிப்புப் பகுதி (Reading)', ms: 'Unit 3: Pemahaman Petikan', en: 'Unit 3: Comprehension' }
+            ]
         };
 
         // AUDIO SYNTHESIZER
@@ -671,67 +748,57 @@
 
         let fxSystem;
 
-        // UASA SAMPLE QUESTION BANK
-        const UASA_QUESTION_BANK = {
-            SJKC: {
-                BC: {
-                    4: [
-                        { q: "请选出下列句子中“成语”使用最恰当的一项：", opts: ["他在台上表演时神采奕奕，赢得了阵阵掌声。", "经过这次惨痛的教训，他终于画蛇添足。", "这里的风景非常漂亮，真是让人坐井观天。", "这场足球比赛十分精彩，双方实力不分轩輊。"], ans: 0, exp: "“神采奕奕”形容精神饱满，容光焕发，适合用在台上的表演表现。" },
-                        { q: "“凡事都要三思而后行。”这句话告诉我们什么道理？", opts: ["做事前要深思熟虑", "走路时要注意安全", "说话时要讲究礼貌", "学习时要勤奋努力"], ans: 0, exp: "“三思而后行”指反复考虑后再采取行动。" }
-                    ],
-                    5: [
-                        { q: "找出与“居安思危”意思相近的词语：", opts: ["未雨绸缪", "自高自大", "盲目跟风", "纸上谈兵"], ans: 0, exp: "“居安思危”和“未雨绸缪”都表示事先做好准备，防患于未然。" }
-                    ]
-                },
-                Math: {
-                    4: [
-                        { q: "在 54 820 中，数字 '4' 的数值 (Nilai Digit) 是什么？", opts: ["4000", "400", "40", "40000"], ans: 0, exp: "数字 4 在千位 (ribu)，因此其数值为 4000。" },
-                        { q: "计算：12.5 kg + 3.85 kg = ?", opts: ["16.35 kg", "15.35 kg", "16.85 kg", "15.85 kg"], ans: 0, exp: "12.50 + 3.85 = 16.35 kg。" }
-                    ]
-                },
-                BM: {
-                    4: [
-                        { q: "Pilih kata ganda yang betul bagi ayat ini: 'Murid-murid sedang membaca ______ di perpustakaan.'", opts: ["buku-buku", "rumah-rumah", "meja-meja", "kasut-kasut"], ans: 0, exp: "'Buku-buku' ialah kata ganda yang merujuk kepada banyak bahan bacaan." }
-                    ]
-                },
-                BI: {
-                    4: [
-                        { q: "Which of the following sentence uses the correct past tense?", opts: ["She walked to school yesterday.", "She walk to school yesterday.", "She is walking to school yesterday.", "She walks to school yesterday."], ans: 0, exp: "The signal word 'yesterday' indicates simple past tense, so 'walked' is correct." }
-                    ]
-                },
-                Science: {
-                    4: [
-                        { q: "下列哪种植物是通过“孢子” (Spora) 来繁殖的？", opts: ["羊齿植物 (Paku-pakis)", "香蕉树 (Pokok Pisang)", "凤仙花 (Pokok Keembung)", "芒果树 (Pokok Manga)"], ans: 0, exp: "羊齿植物（蕨类）没有花朵和种子，主要依靠叶背的孢子囊繁殖。" }
-                    ]
-                }
-            },
-            SK: {
-                BM: {
-                    4: [
-                        { q: "Pilih penjodoh bilangan yang sesuai: 'Ibu membeli se______ pisang di pasar.'", opts: ["sisir", "biji", "batang", "helai"], ans: 0, exp: "Penjodoh bilangan bagi buah pisang dalam gugusan kecil ialah 'sisir'." }
-                    ]
-                },
-                Matematik: {
-                    4: [
-                        { q: "Apakah nilai tempat bagi digit 7 dalam nombor 72 305?", opts: ["Puluh ribu", "Ribu", "Ratus", "Sa"], ans: 0, exp: "Digit 7 berada pada kedudukan nilai tempat 'Puluh ribu'." }
-                    ]
-                }
-            },
-            SJKT: {
-                BT: {
-                    4: [
-                        { q: "கீழ்கண்டவற்றுள் எது சரியான பெயர்ச்சொல்?", opts: ["மரம்", "ஓடினான்", "வேகமாக", "அழகான"], ans: 0, exp: "'மரம்' என்பது ஒரு பெயர்ச்சொல் (Noun) ஆகும்." }
-                    ]
-                }
-            }
+        // SUBJECT-SPECIFIC FALLBACK QUESTION GENERATOR
+        const FALLBACK_SUBJECT_QUESTIONS = {
+            BC: [
+                { q: "请选出下列句子中成语使用最恰当的一项：", opts: ["他在台上表演时神采奕奕，赢得了阵阵掌声。", "经过这次惨痛的教训，他终于画蛇添足。", "这里的风景非常漂亮，真是让人坐井观天。", "这场比赛十分精彩，双方实力不分轩輊。"], ans: 0, exp: "“神采奕奕”形容精神饱满，容光焕发，适合形容精彩的舞台表现。" },
+                { q: "“凡事都要三思而后行。”这句话告诉我们什么道理？", opts: ["做事前要深思熟虑", "走路时要注意安全", "说话时要讲究礼貌", "学习时要勤奋努力"], ans: 0, exp: "“三思而后行”指反复考虑后再采取行动。" },
+                { q: "找出与“居安思危”意思相近的词语：", opts: ["未雨绸缪", "自高自大", "盲目跟风", "纸上谈兵"], ans: 0, exp: "“居安思危”与“未雨绸缪”都表示事先做好防范准备。" }
+            ],
+            BM: [
+                { q: "Pilih kata ganda yang betul: 'Murid-murid sedang membaca ______ di perpustakaan.'", opts: ["buku-buku", "rumah-rumah", "meja-meja", "kasut-kasut"], ans: 0, exp: "'Buku-buku' ialah kata ganda yang merujuk kepada bahan bacaan." },
+                { q: "Pilih penjodoh bilangan yang sesuai: 'Ibu membeli se______ pisang di pasar.'", opts: ["sisir", "biji", "batang", "helai"], ans: 0, exp: "Penjodoh bilangan bagi buah pisang dalam gugusan kecil ialah 'sisir'." },
+                { q: "Apakah lawan kata bagi 'rajin'?", opts: ["malas", "pandai", "kemas", "bijak"], ans: 0, exp: "Lawan kata bagi 'rajin' ialah 'malas'." }
+            ],
+            BI: [
+                { q: "Which of the following sentences uses the correct past tense?", opts: ["She walked to school yesterday.", "She walk to school yesterday.", "She is walking to school yesterday.", "She walks to school yesterday."], ans: 0, exp: "The word 'yesterday' indicates simple past tense, so 'walked' is correct." },
+                { q: "Choose the correct plural form of 'child':", opts: ["children", "childs", "childes", "childrens"], ans: 0, exp: "The plural form of 'child' is 'children'." },
+                { q: "Identify the adjective in this sentence: 'The blue car is fast.'", opts: ["blue", "car", "is", "drove"], ans: 0, exp: "'Blue' is an adjective describing the color of the car." }
+            ],
+            Math: [
+                { q: "在 54 820 中，数字 '4' 的数值 (Nilai Digit) 是什么？", opts: ["4000", "400", "40", "40000"], ans: 0, exp: "数字 4 在千位 (ribu)，其数值为 4000。" },
+                { q: "计算：12.5 kg + 3.85 kg = ?", opts: ["16.35 kg", "15.35 kg", "16.85 kg", "15.85 kg"], ans: 0, exp: "12.50 + 3.85 = 16.35 kg。" },
+                { q: "一个正方形的边长是 6 cm，它的周长 (Perimeter) 是多少？", opts: ["24 cm", "36 cm", "12 cm", "18 cm"], ans: 0, exp: "正方形周长 = 4 × 6 cm = 24 cm。" }
+            ],
+            Matematik: [
+                { q: "Apakah nilai tempat bagi digit 7 dalam nombor 72 305?", opts: ["Puluh ribu", "Ribu", "Ratus", "Sa"], ans: 0, exp: "Digit 7 berada pada kedudukan nilai tempat 'Puluh ribu'." },
+                { q: "Hitungkan: 15.4 kg + 2.85 kg = ?", opts: ["18.25 kg", "17.25 kg", "18.15 kg", "17.85 kg"], ans: 0, exp: "15.40 + 2.85 = 18.25 kg." },
+                { q: "Berapakah perimeter bagi sebuah segi empat sama yang bersisi 5 cm?", opts: ["20 cm", "25 cm", "10 cm", "15 cm"], ans: 0, exp: "Perimeter segi empat sama = 4 × 5 cm = 20 cm." }
+            ],
+            Science: [
+                { q: "下列哪种植物是通过“孢子” (Spora) 来繁殖的？", opts: ["羊齿植物 (Paku-pakis)", "香蕉树 (Pokok Pisang)", "凤仙花 (Pokok Keembung)", "芒果树 (Pokok Manga)"], ans: 0, exp: "羊齿植物（蕨类）没有花朵，依靠叶背的孢子囊繁殖。" },
+                { q: "光合作用 (Fotosintesis) 过程中，植物吸收什么气体并释放氧气？", opts: ["二氧化碳 (Karbon dioksida)", "氢气 (Hidrogen)", "氮气 (Nitrogen)", "一氧化碳 (Karbon monoksida)"], ans: 0, exp: "植物在光合作用中吸收二氧化碳，释放氧气。" },
+                { q: "水的三态变化中，水蒸气变成水滴的过程称为什么？", opts: ["凝聚 (Kondensasi)", "蒸发 (Penyejatan)", "熔化 (Peleburan)", "凝固 (Pembekuan)"], ans: 0, exp: "气体变成液体的过程称为凝聚 (Kondensasi)。" }
+            ],
+            Sains: [
+                { q: "Tumbuhan manakah yang membiak melalui spora?", opts: ["Paku-pakis", "Pokok Pisang", "Pokok Keembung", "Pokok Mangga"], ans: 0, exp: "Paku-pakis membiak melalui spora di bawah permuka daun." },
+                { q: "Apakah gas yang diserap oleh tumbuhan semasa proses fotosintesis?", opts: ["Karbon dioksida", "Oksigen", "Nitrogen", "Hidrogen"], ans: 0, exp: "Tumbuhan menyerap karbon dioksida dan membebaskan oksigen semasa fotosintesis." },
+                { q: "Proses perubahan cecair kepada gas dipanggil:", opts: ["Penyejatan", "Kondensasi", "Peleburan", "Pembekuan"], ans: 0, exp: "Proses daripada cecair menjadi gas dinamakan penyejatan." }
+            ],
+            BT: [
+                { q: "கீழ்கண்டவற்றுள் எது சரியான பெயர்ச்சொல்?", opts: ["மரம்", "ஓடினான்", "வேகமாக", "அழகான"], ans: 0, exp: "'மரம்' என்பது ஒரு பெயர்ச்சொல் (Noun) ஆகும்." },
+                { q: "எதிர்ச்சொல் எழுதுக: 'இரவு'", opts: ["பகல்", "காலை", "மாலை", "இருள்"], ans: 0, exp: "'இரவு' என்பதன் எதிர்ச்சொல் 'பகல்' ஆகும்." },
+                { q: "சரியான சொல்லைத் தேர்ந்தெடுக்க: 'மாணவர்கள் பாடம் ______.'", opts: ["படித்தனர்", "எழுதினான்", "சென்றான்", "ஓடினார்"], ans: 0, exp: "பன்மை எழுவாய்க்கு 'படித்தனர்' என்ற பன்மைப் பயனிலை வர வேண்டும்." }
+            ]
         };
 
         class GameEngine {
             constructor() {
-                this.lang = 'en'; // Defaults to English for initial prompt
+                this.lang = 'zh';
                 this.school = 'SJKC';
                 this.grade = 4;
-                this.subject = 'Math';
+                this.subject = 'BC';
+                this.unitId = 'all'; // Default to all / comprehensive
                 this.avatar = '🐯';
                 this.avatarName = 'Tiger Hero';
                 this.mode = 'adventure';
@@ -753,7 +820,6 @@
             }
 
             init() {
-                // Ensure starting step is Step 0 (Language choice prompt)
                 document.getElementById('step0-language').classList.remove('hidden');
                 document.getElementById('step1-setup').classList.add('hidden');
                 document.getElementById('step2-subject').classList.add('hidden');
@@ -773,7 +839,6 @@
                 document.getElementById('langSelector').value = selectedLang;
                 this.applyTranslations();
 
-                // Move from Step 0 to Step 1 setup
                 document.getElementById('step0-language').classList.add('hidden');
                 document.getElementById('step1-setup').classList.remove('hidden');
             }
@@ -784,7 +849,7 @@
             }
 
             applyTranslations() {
-                const dict = I18N[this.lang] || I18N['en'];
+                const dict = I18N[this.lang] || I18N['zh'];
                 for (let key in dict) {
                     const el = document.getElementById(`i18n-${key}`);
                     if (el) {
@@ -795,6 +860,7 @@
                 this.renderGradeButtons();
                 this.renderHeroSelector();
                 this.renderSubjects();
+                this.renderUnits();
             }
 
             renderGradeButtons() {
@@ -832,7 +898,7 @@
                         isSel ? 'border-purple-400 bg-purple-500/20' : 'border-slate-700 bg-slate-800/60 hover:border-purple-400'
                     }`;
                     
-                    const heroName = h.name[this.lang] || h.name['en'];
+                    const heroName = h.name[this.lang] || h.name['zh'];
                     card.innerHTML = `
                         <div class="text-3xl mb-1">${h.emoji}</div>
                         <div class="text-xs font-bold text-slate-300 text-center">${heroName}</div>
@@ -866,7 +932,7 @@
 
             selectHero(idx) {
                 this.avatar = this.heroAvatars[idx].emoji;
-                this.avatarName = this.heroAvatars[idx].name[this.lang] || this.heroAvatars[idx].name['en'];
+                this.avatarName = this.heroAvatars[idx].name[this.lang] || this.heroAvatars[idx].name['zh'];
                 this.renderHeroSelector();
                 this.checkSetupValid();
             }
@@ -925,7 +991,9 @@
                     ];
                 }
 
-                if (!this.subject) this.subject = subjectsList[0].key;
+                if (!subjectsList.some(s => s.key === this.subject)) {
+                    this.subject = subjectsList[0].key;
+                }
 
                 subjectsList.forEach((sub) => {
                     const btn = document.createElement('button');
@@ -935,7 +1003,7 @@
                     const isSel = (this.subject === sub.key);
 
                     btn.className = `p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between ${
-                        isSel ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-700 bg-slate-800/60'
+                        isSel ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-700 bg-slate-800/60 hover:border-slate-600'
                     }`;
                     btn.innerHTML = `
                         <i class="fa-solid ${sub.icon} ${sub.color} text-2xl mb-2"></i>
@@ -943,11 +1011,50 @@
                     `;
                     subjectGrid.appendChild(btn);
                 });
+
+                this.renderUnits();
             }
 
             selectSubject(key) {
                 this.subject = key;
+                this.unitId = 'all'; // Reset to comprehensive when subject changes
                 this.renderSubjects();
+            }
+
+            renderUnits() {
+                const unitGrid = document.getElementById('unitGrid');
+                if (!unitGrid) return;
+                unitGrid.innerHTML = '';
+
+                const units = UNITS_DATABASE[this.subject] || UNITS_DATABASE['BC'];
+
+                units.forEach((u) => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.onclick = () => this.selectUnit(u.id);
+                    const isSel = (this.unitId === u.id);
+                    const unitName = u[this.lang] || u['zh'];
+
+                    btn.className = `p-3.5 rounded-xl border-2 text-left transition flex items-center space-x-3 ${
+                        isSel 
+                            ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 font-bold' 
+                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-600'
+                    }`;
+
+                    const isComp = u.id === 'all';
+                    btn.innerHTML = `
+                        <div class="w-8 h-8 rounded-lg ${isComp ? 'bg-amber-500/30 text-amber-400' : 'bg-indigo-500/20 text-indigo-300'} flex items-center justify-center shrink-0">
+                            <i class="fa-solid ${isComp ? 'fa-globe' : 'fa-book'} text-sm"></i>
+                        </div>
+                        <span class="text-xs md:text-sm font-semibold">${unitName}</span>
+                    `;
+                    unitGrid.appendChild(btn);
+                });
+            }
+
+            selectUnit(uid) {
+                this.unitId = uid;
+                this.renderUnits();
             }
 
             selectMode(m) {
@@ -962,6 +1069,12 @@
                         }
                     }
                 });
+            }
+
+            getSelectedUnitName() {
+                const units = UNITS_DATABASE[this.subject] || UNITS_DATABASE['BC'];
+                const found = units.find(u => u.id === this.unitId);
+                return found ? (found[this.lang] || found['zh']) : 'Comprehensive';
             }
 
             async startGame() {
@@ -980,7 +1093,7 @@
                 document.getElementById('heroBattleSprite').innerText = this.avatar;
                 document.getElementById('heroNameLabel').innerText = this.avatarName;
                 document.getElementById('monsterNameLabel').innerText = I18N[this.lang]?.monsterName || 'UASA Quiz Monster';
-                document.getElementById('currentSubjectTag').innerText = `${this.subject} • UASA ${this.lang === 'zh' ? `${this.grade}${suffix}` : `${suffix} ${this.grade}`}`;
+                document.getElementById('currentSubjectTag').innerText = `${this.subject} • ${this.getSelectedUnitName()}`;
 
                 this.updateLivesDisplay();
 
@@ -1006,18 +1119,8 @@
             }
 
             loadPresetQuestions() {
-                let qs = [];
-                try {
-                    qs = UASA_QUESTION_BANK[this.school][this.subject][this.grade] || [];
-                } catch(e) {}
-
-                if (!qs || qs.length === 0) {
-                    qs = [
-                        { q: "UASA Practice Q1: Selesaikan / Calculate 450 + 280 = ?", opts: ["730", "720", "740", "710"], ans: 0, exp: "450 + 280 = 730." },
-                        { q: "UASA Practice Q2: Selesaikan / Calculate 12 × 5 = ?", opts: ["60", "50", "55", "65"], ans: 0, exp: "12 × 5 = 60." },
-                        { q: "UASA Practice Q3: Selesaikan / Calculate 500 - 185 = ?", opts: ["315", "325", "305", "335"], ans: 0, exp: "500 - 185 = 315." }
-                    ];
-                }
+                let fallbackKey = Object.keys(FALLBACK_SUBJECT_QUESTIONS).find(k => k === this.subject) || 'BC';
+                let qs = FALLBACK_SUBJECT_QUESTIONS[fallbackKey] || FALLBACK_SUBJECT_QUESTIONS['BC'];
                 this.questions = qs;
             }
 
@@ -1027,8 +1130,10 @@
                 document.getElementById('optionsContainer').classList.add('hidden');
 
                 const langName = this.lang === 'ms' ? 'Bahasa Melayu' : (this.lang === 'en' ? 'English' : '华文');
-                const systemPrompt = `You are a Malaysian primary education syllabus expert for UASA (Ujian Akhir Sesi Akademik) & KSSR Semakan. Generate 4 multiple-choice questions for ${this.school} stream, Standard ${this.grade}, in the subject ${this.subject}. Language: ${langName}.`;
-                const userPrompt = `Return JSON array with 4 objects. Each object has: q (question string), opts (array of 4 option strings), ans (correct index 0-3), exp (explanation string in the same language).`;
+                const unitText = this.getSelectedUnitName();
+
+                const systemPrompt = `You are an expert Malaysian primary school teacher specializing in UASA (Ujian Akhir Sesi Akademik) & KSSR Semakan. Generate 4 multiple-choice questions for ${this.school} stream, Standard ${this.grade}, in Subject ${this.subject}, specifically focusing on Scope/Topic: "${unitText}". Language: ${langName}.`;
+                const userPrompt = `Return a JSON array with 4 question objects. Each object has: "q" (question string), "opts" (array of 4 distinct option strings), "ans" (correct index 0-3), "exp" (clear explanation string in ${langName}).`;
 
                 try {
                     const apiKey = "";
@@ -1066,7 +1171,7 @@
                     if (textResult) {
                         this.questions = JSON.parse(textResult);
                     } else {
-                        throw new Error("Invalid format");
+                        throw new Error("Invalid response format");
                     }
                 } catch (err) {
                     console.warn("AI generation fallback to preset:", err);
@@ -1089,7 +1194,7 @@
                 const qSuffix = this.lang === 'zh' ? '题' : '';
 
                 document.getElementById('levelStageLabel').innerText = `${qLabel} ${this.currentQuestionIdx + 1} / ${this.questions.length} ${qSuffix}`;
-                document.getElementById('qCategoryHeader').innerText = `UASA BAHAGIAN A • ${this.school} STANDARD ${this.grade}`;
+                document.getElementById('qCategoryHeader').innerText = `${this.getSelectedUnitName()} • ${this.school} STD ${this.grade}`;
                 document.getElementById('questionText').innerText = currentQ.q;
 
                 const hpPercent = 100 - (this.currentQuestionIdx / this.questions.length) * 100;
@@ -1191,7 +1296,7 @@
                 document.getElementById('step3-game').classList.add('hidden');
                 document.getElementById('step4-result').classList.remove('hidden');
 
-                const dict = I18N[this.lang] || I18N['en'];
+                const dict = I18N[this.lang] || I18N['zh'];
 
                 if (isVictory) {
                     audioManager.playVictory();
@@ -1214,7 +1319,6 @@
                     : 0;
                 document.getElementById('finalAccuracy').innerText = `${Math.min(100, accuracy)}%`;
 
-                // Calculate UASA Tahap Penguasaan (TP Band 1 - 6)
                 let tpBand = "TP 6 (Cemerlang)";
                 if (accuracy < 40) tpBand = "TP 1 - TP 2 (Mencapai Tahap Minimal)";
                 else if (accuracy < 60) tpBand = "TP 3 (Memuaskan)";
