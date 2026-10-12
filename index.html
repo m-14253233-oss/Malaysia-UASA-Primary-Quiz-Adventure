@@ -1,1349 +1,979 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malaysia UASA & KSSR Primary Quiz Adventure</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UASA Primary School Quest | 马来西亚小学生智力大冒险</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Noto Sans SC', 'Fredoka', 'sans-serif'],
-                        game: ['Fredoka', 'Noto Sans SC', 'sans-serif'],
-                    },
-                    colors: {
-                        sjkc: { 500: '#ef4444', 600: '#dc2626' },
-                        sk: { 500: '#3b82f6', 600: '#2563eb' },
-                        sjkt: { 500: '#10b981', 600: '#059669' },
-                    },
-                    animation: {
-                        'bounce-short': 'bounce 0.5s ease-in-out 2',
-                        'pulse-glow': 'pulseGlow 2s infinite',
-                        'float': 'float 3s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        pulseGlow: {
-                            '0%, 100%': { filter: 'drop-shadow(0 0 15px rgba(234, 179, 8, 0.6))' },
-                            '50%': { filter: 'drop-shadow(0 0 25px rgba(234, 179, 8, 0.9))' },
-                        },
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0px)' },
-                            '50%': { transform: 'translateY(-10px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+        
         body {
-            font-family: 'Noto Sans SC', 'Fredoka', sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
+            font-family: 'Fredoka', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 50%, #e0e7ff 100%);
+            min-height: 100vh;
         }
+
         .glass-card {
-            background: rgba(30, 41, 59, 0.88);
+            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(12px);
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+
+        .btn-bounce {
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-bounce:hover {
+            transform: translateY(-2px);
+        }
+        .btn-bounce:active {
+            transform: translateY(1px) scale(0.98);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes pulse-subtle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.92; transform: scale(1.02); }
+        }
+
+        .animate-pulse-subtle {
+            animation: pulse-subtle 3s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="h-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-900">
+<body class="text-slate-800 min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
 
-    <!-- Canvas for Particle Effects -->
-    <canvas id="effectsCanvas" class="fixed inset-0 pointer-events-none z-50"></canvas>
-
-    <header class="w-full bg-slate-900/90 border-b border-slate-800 px-3 md:px-4 py-3 sticky top-0 z-40 backdrop-blur-md">
-        <div class="max-w-6xl mx-auto flex justify-between items-center gap-2">
-            <div class="flex items-center space-x-2 md:space-x-3 cursor-pointer" onclick="game.resetToHome()">
-                <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center shadow-lg shadow-yellow-500/30 shrink-0">
-                    <i class="fa-solid font-bold fa-graduation-cap text-slate-900 text-lg md:text-xl"></i>
+    <header class="bg-indigo-600 text-white shadow-lg sticky top-0 z-50 border-b border-indigo-500/30">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="resetToSetup()">
+                <div class="w-10 h-10 bg-amber-400 text-indigo-900 rounded-xl flex items-center justify-center font-bold shadow-md group-hover:scale-105 transition-transform">
+                    <i class="fa-solid fa-graduation-cap text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-bold text-base md:text-xl text-yellow-400 tracking-wide font-game leading-tight" id="i18n-appName">UASA Primary Quiz Adventure</h1>
-                    <p class="text-[11px] md:text-xs text-slate-400 hidden sm:block" id="i18n-appSubtitle">Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)</p>
+                    <h1 class="font-extrabold text-lg md:text-xl tracking-tight leading-none" id="nav-title">UASA Primary Quest</h1>
+                    <span class="text-xs text-indigo-200 font-medium tracking-wide">KSSR Semakan Standard</span>
                 </div>
             </div>
-
-            <!-- Top Controls -->
-            <div class="flex items-center space-x-2 md:space-x-3">
-                <div class="relative flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2 py-1 text-xs md:text-sm text-slate-200">
-                    <i class="fa-solid fa-globe text-yellow-400 mr-1.5"></i>
-                    <select id="langSelector" onchange="game.changeLanguage(this.value)" class="bg-transparent text-slate-200 font-semibold focus:outline-none cursor-pointer pr-1">
-                        <option value="zh" class="bg-slate-900 text-white">华文 (ZH)</option>
-                        <option value="ms" class="bg-slate-900 text-white">Bahasa Melayu</option>
-                        <option value="en" class="bg-slate-900 text-white">English</option>
-                    </select>
-                </div>
-
-                <div id="topStatsBar" class="hidden flex items-center space-x-3 bg-slate-800/80 px-3 py-1.5 rounded-full border border-slate-700">
-                    <div class="flex items-center space-x-1 text-yellow-400 font-bold text-xs md:text-sm">
-                        <i class="fa-solid fa-star"></i>
-                        <span id="playerStars">0</span>
-                    </div>
-                    <div class="h-3.5 w-[1px] bg-slate-700"></div>
-                    <div class="flex items-center space-x-1 text-emerald-400 font-bold text-xs md:text-sm">
-                        <i class="fa-solid fa-trophy"></i>
-                        <span id="playerScore">0</span>
-                    </div>
-                    <div class="h-3.5 w-[1px] bg-slate-700"></div>
-                    <button onclick="audioManager.toggleMute()" class="text-slate-400 hover:text-white transition">
-                        <i id="muteBtnIcon" class="fa-solid fa-volume-high text-xs md:text-sm"></i>
-                    </button>
-                </div>
+            
+            <!-- Global Language Selector Dropdown -->
+            <div class="flex items-center gap-2 bg-indigo-700/60 px-3 py-1.5 rounded-xl border border-indigo-400/40 shadow-inner">
+                <i class="fa-solid fa-globe text-amber-300 text-sm"></i>
+                <select id="lang-select" onchange="changeLanguage(this.value)" class="bg-transparent text-white text-xs md:text-sm font-bold focus:outline-none cursor-pointer">
+                    <option value="en" class="text-slate-800">English 🇬🇧</option>
+                    <option value="ms" class="text-slate-800">Bahasa Melayu 🇲🇾</option>
+                    <option value="zh" class="text-slate-800">华文 (Chinese) 🇨🇳</option>
+                </select>
             </div>
         </div>
     </header>
 
-    <main class="flex-grow max-w-5xl w-full mx-auto p-4 md:p-6 flex flex-col justify-center items-center relative z-10">
-        
-        <!-- STEP 0: INITIAL LANGUAGE SELECTION -->
-        <section id="step0-language" class="w-full max-w-2xl glass-card rounded-3xl p-6 md:p-10 shadow-2xl transition-all duration-300 text-center animate-fade-in">
-            <div class="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-tr from-yellow-400 to-amber-500 flex items-center justify-center text-4xl shadow-xl shadow-yellow-500/20 mb-6">
-                🌐
+    <main class="max-w-4xl mx-auto px-4 py-6 w-full flex-grow flex items-center justify-center">
+
+        <!-- 0. INITIAL LANGUAGE SELECTION SCREEN -->
+        <div id="screen-lang-init" class="w-full glass-card rounded-3xl p-6 md:p-10 text-center animate-fade-in max-w-xl mx-auto">
+            <div class="w-20 h-20 bg-gradient-to-tr from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-5 text-4xl shadow-lg shadow-indigo-200 animate-pulse-subtle">
+                <i class="fa-solid fa-language"></i>
             </div>
-
-            <span class="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-bold uppercase tracking-widest mb-3">
-                UASA Standard Syllabus 🇲🇾
-            </span>
-
-            <h2 class="text-2xl md:text-4xl font-extrabold text-white font-game mb-3 leading-tight">
-                请选择您的界面语言 / Select Language
-            </h2>
-            <p class="text-slate-300 text-sm md:text-base mb-8">
-                选择您偏好的语言，开启 UASA (Ujian Akhir Sesi Akademik) 模拟练习闯关：
-            </p>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <button onclick="game.setInitialLanguage('zh')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-red-400 hover:bg-red-500/10 transition-all flex flex-col items-center justify-center shadow-md">
-                    <span class="text-3xl mb-2">🇨🇳</span>
-                    <span class="font-bold text-white group-hover:text-red-400 text-base">华文 (Chinese)</span>
-                    <span class="text-xs text-slate-400 mt-0.5">SJK(C) 华小学具</span>
-                </button>
-
-                <button onclick="game.setInitialLanguage('ms')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-blue-400 hover:bg-blue-500/10 transition-all flex flex-col items-center justify-center shadow-md">
-                    <span class="text-3xl mb-2">🇲🇾</span>
-                    <span class="font-bold text-white group-hover:text-blue-400 text-base">Bahasa Melayu</span>
-                    <span class="text-xs text-slate-400 mt-0.5">Bahasa Kebangsaan</span>
-                </button>
-
-                <button onclick="game.setInitialLanguage('en')" class="group p-5 rounded-2xl border-2 border-slate-700 bg-slate-800/80 hover:border-yellow-400 hover:bg-yellow-500/10 transition-all flex flex-col items-center justify-center shadow-md">
-                    <span class="text-3xl mb-2">🇬🇧</span>
-                    <span class="font-bold text-white group-hover:text-yellow-400 text-base">English</span>
-                    <span class="text-xs text-slate-400 mt-0.5">Primary English</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- STEP 1: WELCOME & PROFILE SETUP -->
-        <section id="step1-setup" class="w-full glass-card rounded-3xl p-5 md:p-8 shadow-2xl transition-all duration-300 hidden">
-            <div class="text-center mb-6">
-                <span class="inline-block px-3 py-1 bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 rounded-full text-xs font-semibold mb-2" id="i18n-badgeKssr">
-                    🇲🇾 Format UASA & KSSR Semakan Aligned
-                </span>
-                <h2 class="text-2xl md:text-4xl font-extrabold text-white font-game tracking-wider" id="i18n-heroSetupTitle">Create Your Learning Hero</h2>
-                <p class="text-slate-400 text-sm mt-1" id="i18n-heroSetupDesc">Select your school stream and standard to begin!</p>
-            </div>
-
-            <div class="space-y-6">
-                <!-- 1. School Type Selection -->
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-schoolTypeLabel">
-                        <i class="fa-solid fa-school text-indigo-400"></i> Select School Stream (Jenis Sekolah):
-                    </label>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <button type="button" onclick="game.selectSchool('SJKC')" id="school-SJKC" 
-                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-red-500 transition text-left relative overflow-hidden group">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-400 text-xl font-bold">
-                                    华小
-                                </div>
-                                <div>
-                                    <div class="font-bold text-white group-hover:text-red-400">SJK(C)</div>
-                                    <div class="text-xs text-slate-400">华文, BM, BI, Math, Sains</div>
-                                </div>
-                            </div>
-                        </button>
-
-                        <button type="button" onclick="game.selectSchool('SK')" id="school-SK" 
-                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-blue-500 transition text-left relative overflow-hidden group">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-400 text-xl font-bold">
-                                    SK
-                                </div>
-                                <div>
-                                    <div class="font-bold text-white group-hover:text-blue-400">SK Kebangsaan</div>
-                                    <div class="text-xs text-slate-400">BM, English, Matematik, Sains</div>
-                                </div>
-                            </div>
-                        </button>
-
-                        <button type="button" onclick="game.selectSchool('SJKT')" id="school-SJKT" 
-                            class="p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 hover:border-emerald-500 transition text-left relative overflow-hidden group">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-xl font-bold">
-                                    淡小
-                                </div>
-                                <div>
-                                    <div class="font-bold text-white group-hover:text-emerald-400">SJK(T)</div>
-                                    <div class="text-xs text-slate-400">தமிழ், BM, English, Math, Sains</div>
-                                </div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. Grade Selection -->
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-gradeLabel">
-                        <i class="fa-solid fa-cubes text-yellow-400"></i> Select Standard / Grade (UASA Assessment Level):
-                    </label>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2.5" id="gradeButtonsContainer"></div>
-                </div>
-
-                <!-- 3. Avatar Hero Selection -->
-                <div>
-                    <label class="block text-slate-300 font-semibold mb-2 text-sm flex items-center gap-2" id="i18n-heroSelectLabel">
-                        <i class="fa-solid fa-user-astronaut text-purple-400"></i> Select Hero Companion:
-                    </label>
-                    <div class="grid grid-cols-4 gap-3" id="heroSelector"></div>
-                </div>
-
-                <button id="btnGoToSubjects" disabled onclick="game.goToSubjectSelect()" 
-                    class="w-full py-4 rounded-2xl bg-gradient-to-r from-yellow-500 to-amber-500 text-slate-950 font-bold text-lg shadow-lg shadow-yellow-500/25 opacity-50 cursor-not-allowed hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
-                    <span id="i18n-nextSubjectBtn">Next: Choose UASA Subject</span> <i class="fa-solid fa-arrow-right"></i>
-                </button>
-            </div>
-        </section>
-
-        <!-- STEP 2: SUBJECT, UNIT & MODE SELECTION -->
-        <section id="step2-subject" class="w-full glass-card rounded-3xl p-5 md:p-8 shadow-2xl hidden transition-all duration-300">
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-700/80">
-                <button onclick="game.backToSetup()" class="text-slate-400 hover:text-white flex items-center text-sm font-semibold transition">
-                    <i class="fa-solid fa-chevron-left mr-2"></i> <span id="i18n-backSetup">Change School / Standard</span>
-                </button>
-                <div id="profileBadge" class="bg-indigo-950 border border-indigo-500/40 text-indigo-300 text-xs px-3 py-1.5 rounded-full font-bold">
-                    SJK(C) • Standard 4
-                </div>
-            </div>
-
-            <!-- Subject Choice -->
-            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3" id="i18n-selectSubjectTitle">1. Select UASA Subject</h2>
-            <div id="subjectGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"></div>
-
-            <!-- Unit / Chapter Choice -->
-            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3 flex items-center gap-2" id="i18n-selectUnitTitle">
-                <i class="fa-solid fa-layer-group text-yellow-400 text-lg"></i> 2. Select Practice Scope (Unit / Comprehensive)
-            </h2>
-            <div id="unitGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-6"></div>
-
-            <!-- Game Mode Choice -->
-            <h2 class="text-xl md:text-2xl font-bold text-white font-game mb-3" id="i18n-selectModeTitle">3. Select Challenge Mode</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-                <div onclick="game.selectMode('adventure')" id="mode-adventure" 
-                    class="mode-card p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-amber-500/30 flex items-center justify-center text-amber-400 text-xl shrink-0">
-                            <i class="fa-solid fa-dragon"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-amber-300" id="i18n-modeAdventureTitle">UASA Section A Battle</div>
-                            <div class="text-xs text-slate-400" id="i18n-modeAdventureDesc">Answer objective questions to defeat monsters!</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div onclick="game.selectMode('timeattack')" id="mode-timeattack" 
-                    class="mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-500/20 flex items-center justify-center text-sky-400 text-xl shrink-0">
-                            <i class="fa-solid fa-stopwatch"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-white" id="i18n-modeTimeAttackTitle">60s UASA Speed Sprint</div>
-                            <div class="text-xs text-slate-400" id="i18n-modeTimeAttackDesc">Fast-paced quick response practice!</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div onclick="game.selectMode('ai')" id="mode-ai" 
-                    class="mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center text-purple-400 text-xl shrink-0">
-                            <i class="fa-solid fa-brain"></i>
-                        </div>
-                        <div>
-                            <div class="font-bold text-white flex items-center gap-1.5" id="i18n-modeAiTitle">
-                                AI UASA Generator <span class="bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded">Gemini</span>
-                            </div>
-                            <div class="text-xs text-slate-400" id="i18n-modeAiDesc">AI generates live endless UASA questions!</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="game.startGame()" 
-                class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold text-xl shadow-lg shadow-emerald-500/25 hover:brightness-110 active:scale-98 transition flex items-center justify-center gap-2">
-                <i class="fa-solid fa-gamepad"></i> <span id="i18n-startGameBtn">Start UASA Challenge!</span>
-            </button>
-        </section>
-
-        <!-- STEP 3: GAMEPLAY ARENA -->
-        <section id="step3-game" class="w-full glass-card rounded-3xl p-4 md:p-6 shadow-2xl hidden relative overflow-hidden">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-2">Which language would you like to use?</h2>
+            <p class="text-slate-500 font-medium mb-8 text-sm md:text-base">Sila pilih bahasa pilihan anda / 请选择您要使用的语言</p>
             
-            <div class="flex items-center justify-between mb-4 bg-slate-900/80 p-3 rounded-2xl border border-slate-800">
-                <div class="flex items-center space-x-2">
-                    <div id="heroMiniAvatar" class="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-lg">
-                        🐯
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-400" id="currentSubjectTag">Mathematics • Std 4</div>
-                        <div class="text-sm font-bold text-white" id="levelStageLabel">Question 1 / 5</div>
-                    </div>
-                </div>
-
-                <div class="flex items-center space-x-4">
-                    <div id="timerContainer" class="hidden flex items-center space-x-1.5 bg-sky-950 border border-sky-500/50 px-3 py-1 rounded-full text-sky-300 font-bold text-sm">
-                        <i class="fa-solid fa-clock text-sky-400 animate-pulse"></i>
-                        <span id="gameTimer">60s</span>
-                    </div>
-
-                    <div id="livesContainer" class="flex items-center space-x-1"></div>
-                </div>
-            </div>
-
-            <div id="monsterBattleArea" class="mb-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-4 rounded-2xl border border-indigo-900/60 relative">
-                <div class="flex justify-between items-center px-4 py-2">
-                    <div class="flex flex-col items-center">
-                        <div id="heroBattleSprite" class="text-5xl md:text-6xl animate-float filter drop-shadow-md">🐯</div>
-                        <div class="text-xs font-bold text-slate-300 mt-1" id="heroNameLabel">Tiger Hero</div>
-                    </div>
-
-                    <div class="flex flex-col items-center">
-                        <span class="text-amber-400 font-black text-xl font-game italic">VS</span>
-                        <div class="w-20 bg-slate-800 rounded-full h-2.5 mt-2 border border-slate-700">
-                            <div id="monsterHpBar" class="bg-red-500 h-2.5 rounded-full transition-all duration-300" style="width: 100%"></div>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-col items-center">
-                        <div id="monsterSprite" class="text-5xl md:text-6xl animate-bounce-short filter drop-shadow-md">👾</div>
-                        <div class="text-xs font-bold text-red-400 mt-1" id="monsterNameLabel">UASA Quiz Monster</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="aiLoadingOverlay" class="hidden my-8 p-8 text-center flex flex-col items-center justify-center">
-                <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mb-3"></div>
-                <div class="text-purple-300 font-bold text-lg" id="i18n-aiLoading">Gemini AI is generating UASA questions...</div>
-                <div class="text-slate-400 text-xs mt-1" id="i18n-aiLoadingSub">Aligned with KSSR Semakan & UASA Exam Standards...</div>
-            </div>
-
-            <div id="questionDisplayCard" class="bg-slate-800/80 p-5 md:p-6 rounded-2xl border border-slate-700 mb-4 shadow-inner">
-                <div class="text-xs font-semibold text-amber-400 mb-1 tracking-wider uppercase" id="qCategoryHeader">UASA SECTION A</div>
-                <h3 id="questionText" class="text-lg md:text-xl font-bold text-white leading-snug">Loading...</h3>
-            </div>
-
-            <div id="optionsContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
-
-            <div id="explanationBox" class="mt-4 p-4 rounded-xl bg-indigo-950/80 border border-indigo-500/40 hidden animate-fade-in">
-                <div class="flex items-start space-x-2">
-                    <i class="fa-solid fa-lightbulb text-yellow-400 text-lg mt-0.5"></i>
-                    <div>
-                        <div class="text-xs font-bold text-yellow-300 uppercase tracking-wide" id="i18n-explanationTitle">UASA Explanation / Penjelasan:</div>
-                        <div id="explanationText" class="text-sm text-slate-200 mt-0.5"></div>
-                    </div>
-                </div>
-                <button id="btnNextQuestion" onclick="game.nextQuestion()" 
-                    class="mt-3 w-full py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold hover:bg-amber-400 transition text-sm flex items-center justify-center gap-1">
-                    <span id="i18n-nextQBtn">Next Question</span> <i class="fa-solid fa-arrow-right ml-1"></i>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button onclick="selectInitialLang('en')" class="btn-bounce p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-indigo-500 hover:bg-indigo-50/50 text-slate-800 font-bold flex flex-col items-center gap-3 shadow-sm group">
+                    <span class="text-4xl group-hover:scale-110 transition-transform">🇬🇧</span>
+                    <span class="text-indigo-900 font-extrabold">English</span>
+                </button>
+                <button onclick="selectInitialLang('ms')" class="btn-bounce p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-indigo-500 hover:bg-indigo-50/50 text-slate-800 font-bold flex flex-col items-center gap-3 shadow-sm group">
+                    <span class="text-4xl group-hover:scale-110 transition-transform">🇲🇾</span>
+                    <span class="text-indigo-900 font-extrabold">Bahasa Melayu</span>
+                </button>
+                <button onclick="selectInitialLang('zh')" class="btn-bounce p-5 rounded-2xl border-2 border-slate-200 bg-white hover:border-indigo-500 hover:bg-indigo-50/50 text-slate-800 font-bold flex flex-col items-center gap-3 shadow-sm group">
+                    <span class="text-4xl group-hover:scale-110 transition-transform">🇨🇳</span>
+                    <span class="text-indigo-900 font-extrabold">华文 (Chinese)</span>
                 </button>
             </div>
-        </section>
+        </div>
 
-        <!-- STEP 4: UASA SUMMARY & RESULT SCREEN -->
-        <section id="step4-result" class="w-full glass-card rounded-3xl p-6 md:p-8 shadow-2xl hidden text-center">
-            <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-4xl shadow-xl shadow-yellow-500/30 mb-4 animate-bounce">
-                🏆
+        <!-- 1. QUIZ SETUP SCREEN -->
+        <div id="screen-setup" class="w-full glass-card rounded-3xl p-6 md:p-8 shadow-xl hidden">
+            <div class="text-center mb-6">
+                <span class="bg-indigo-100 text-indigo-700 text-xs font-extrabold uppercase px-3 py-1 rounded-full tracking-wider mb-2 inline-block">KSSR Semakan &amp; UASA Assessment</span>
+                <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800" id="txt-setup-title">Quiz Setup</h2>
             </div>
 
-            <h2 class="text-3xl font-extrabold text-white font-game mb-1" id="resultTitle">UASA Challenge Completed!</h2>
-            <p class="text-slate-400 text-sm mb-4" id="resultSubtitle">Great job completing your academic practice session!</p>
-
-            <!-- UASA Performance Band Badge -->
-            <div class="inline-flex items-center gap-2 bg-indigo-950 border border-indigo-500/50 px-4 py-2 rounded-full mb-6">
-                <span class="text-xs text-indigo-300 font-semibold" id="i18n-tpLabel">UASA Tahap Penguasaan:</span>
-                <span class="text-sm font-black text-yellow-400 font-game" id="tpBandValue">TP 6 (Cemerlang)</span>
+            <!-- School Stream Selector -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2" id="lbl-stream">
+                    <i class="fa-solid fa-school text-indigo-500"></i>
+                    <span>School Stream:</span>
+                </label>
+                <div class="grid grid-cols-3 gap-3" id="stream-options">
+                    <button onclick="setStream('SJKC')" class="stream-btn btn-bounce p-3 rounded-2xl border-2 border-indigo-500 bg-indigo-50 font-bold text-indigo-700 text-xs md:text-sm text-center shadow-sm" data-stream="SJKC">SJK(C) 华小</button>
+                    <button onclick="setStream('SK')" class="stream-btn btn-bounce p-3 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-600 hover:border-slate-300 text-xs md:text-sm text-center shadow-sm" data-stream="SK">SK 国小</button>
+                    <button onclick="setStream('SJKT')" class="stream-btn btn-bounce p-3 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-600 hover:border-slate-300 text-xs md:text-sm text-center shadow-sm" data-stream="SJKT">SJK(T) 淡小</button>
+                </div>
             </div>
 
-            <div class="grid grid-cols-3 gap-3 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 mb-6">
-                <div>
-                    <div class="text-slate-400 text-xs" id="i18n-totalScore">Total Score</div>
-                    <div class="text-2xl font-black text-amber-400 font-game mt-0.5" id="finalScore">0</div>
+            <!-- Grade / Standard Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2" id="lbl-grade">
+                    <i class="fa-solid fa-layer-group text-indigo-500"></i>
+                    <span>Select Grade / Standard:</span>
+                </label>
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5" id="grade-options"></div>
+            </div>
+
+            <!-- Subject Selection -->
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2" id="lbl-subject">
+                    <i class="fa-solid fa-book-open text-indigo-500"></i>
+                    <span>Select Subject:</span>
+                </label>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="subject-options"></div>
+            </div>
+
+            <!-- Practice Scope & Units -->
+            <div class="mb-8">
+                <label class="block text-sm font-bold text-slate-700 mb-2 flex items-center gap-2" id="lbl-mode-type">
+                    <i class="fa-solid fa-sliders text-indigo-500"></i>
+                    <span>Practice Scope:</span>
+                </label>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                    <button onclick="setPracticeType('full')" id="btn-mode-full" class="practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-indigo-500 bg-indigo-50 font-bold text-indigo-700 text-sm flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-award text-indigo-500"></i>
+                        <span id="txt-mode-full">Full Syllabus (UASA Mock)</span>
+                    </button>
+                    <button onclick="setPracticeType('unit')" id="btn-mode-unit" class="practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-600 hover:border-slate-300 text-sm flex items-center justify-center gap-2 shadow-sm">
+                        <i class="fa-solid fa-cubes text-slate-400"></i>
+                        <span id="txt-mode-unit">Topical / Unit Practice</span>
+                    </button>
                 </div>
-                <div>
-                    <div class="text-slate-400 text-xs" id="i18n-accuracy">Accuracy</div>
-                    <div class="text-2xl font-black text-emerald-400 font-game mt-0.5" id="finalAccuracy">100%</div>
-                </div>
-                <div>
-                    <div class="text-slate-400 text-xs" id="i18n-starsEarned">Stars Earned</div>
-                    <div class="text-2xl font-black text-yellow-300 font-game mt-0.5 flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-star text-base"></i> <span id="finalStars">+3</span>
+
+                <!-- Unit Selection Dropdown -->
+                <div id="unit-select-container" class="hidden transition-all">
+                    <div class="relative">
+                        <select id="unit-select" class="w-full p-3.5 pl-4 pr-10 rounded-2xl border-2 border-indigo-200 font-semibold text-slate-700 bg-white focus:outline-none focus:border-indigo-500 text-sm appearance-none shadow-sm cursor-pointer"></select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
                     </div>
+                </div>
+            </div>
+
+            <!-- Start Game Button -->
+            <button onclick="startGame()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-extrabold py-4 px-6 rounded-2xl shadow-lg shadow-emerald-200 btn-bounce text-lg flex items-center justify-center gap-3">
+                <i class="fa-solid fa-play text-xl"></i>
+                <span id="btn-start-txt">Start Quiz Quest!</span>
+            </button>
+        </div>
+
+        <!-- 2. INTERACTIVE QUIZ SCREEN -->
+        <div id="screen-quiz" class="w-full glass-card rounded-3xl p-6 md:p-8 shadow-xl hidden">
+            <!-- Header Bar -->
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span id="quiz-info-badge" class="bg-indigo-100 text-indigo-800 text-xs font-extrabold px-3 py-1 rounded-full border border-indigo-200">Standard 4 - History</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5 text-amber-500 font-extrabold text-sm md:text-base">
+                        <i class="fa-solid fa-star text-amber-400"></i>
+                        <span id="score-val">0</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 text-emerald-600 font-extrabold text-sm md:text-base bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        <i class="fa-solid fa-bolt text-emerald-500"></i>
+                        <span id="combo-val">0 Combo</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="flex justify-between items-center text-xs font-bold text-slate-400 mb-1.5">
+                    <span id="question-count-lbl">Question 1 of 5</span>
+                    <span id="progress-pct">20%</span>
+                </div>
+                <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5 border border-slate-200/60">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+                </div>
+            </div>
+
+            <!-- Question Box -->
+            <div class="mb-6">
+                <span id="question-unit-tag" class="text-xs font-extrabold text-indigo-500 uppercase tracking-wider mb-1 block">Unit 1</span>
+                <h3 id="question-text" class="text-lg md:text-xl font-extrabold text-slate-800 leading-snug mb-5">Loading question...</h3>
+                
+                <!-- Options Container -->
+                <div id="options-container" class="grid grid-cols-1 gap-3"></div>
+            </div>
+
+            <!-- UASA Concept Explanation Card -->
+            <div id="explanation-box" class="hidden mb-6 p-4 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200/80 text-amber-900 text-xs md:text-sm shadow-sm animate-fade-in">
+                <div class="flex items-center gap-2 font-extrabold mb-1.5 text-amber-800">
+                    <i class="fa-solid fa-lightbulb text-amber-500 text-base"></i>
+                    <span id="txt-explanation-title">UASA Concept Explanation:</span>
+                </div>
+                <p id="explanation-text" class="font-medium leading-relaxed text-amber-900/90"></p>
+            </div>
+
+            <!-- Next Question Button -->
+            <button id="btn-next" onclick="nextQuestion()" class="hidden w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 px-6 rounded-2xl shadow-md shadow-indigo-200 btn-bounce text-base flex items-center justify-center gap-2">
+                <span id="txt-btn-next">Next Question</span>
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </div>
+
+        <!-- 3. RESULT EVALUATION SCREEN -->
+        <div id="screen-result" class="w-full glass-card rounded-3xl p-6 md:p-8 shadow-xl text-center hidden max-w-lg mx-auto">
+            <div class="w-24 h-24 bg-amber-100 text-amber-500 rounded-3xl flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner border-2 border-amber-200 animate-bounce">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+
+            <h2 class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-1" id="txt-result-title">Assessment Complete!</h2>
+            <p class="text-slate-500 font-medium text-xs md:text-sm mb-6" id="txt-result-subtitle">Great job completing your UASA KSSR assessment!</p>
+
+            <!-- UASA TP Badge Card -->
+            <div class="bg-gradient-to-b from-indigo-50 to-purple-50 border-2 border-indigo-200/80 rounded-2xl p-5 mb-6 shadow-sm">
+                <span class="text-xs font-extrabold text-indigo-500 uppercase tracking-widest block mb-1">UASA Tahap Penguasaan (TP)</span>
+                <div class="text-4xl font-black text-indigo-700 my-1" id="tp-level">TP 6</div>
+                <div class="text-sm font-extrabold text-indigo-900" id="tp-desc">Excellent Mastery (Cemerlang)</div>
+            </div>
+
+            <!-- Score Stats Grid -->
+            <div class="grid grid-cols-2 gap-3 mb-6">
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 block mb-1" id="txt-final-score-lbl">Total Score</span>
+                    <span class="text-2xl font-black text-emerald-600" id="final-score">100</span>
+                </div>
+                <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                    <span class="text-xs font-bold text-slate-400 block mb-1" id="txt-accuracy-lbl">Accuracy</span>
+                    <span class="text-2xl font-black text-indigo-600" id="final-accuracy">100%</span>
                 </div>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-3">
-                <button onclick="game.startGame()" class="flex-1 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-rotate-right"></i> <span id="i18n-playAgain">Try Again</span>
-                </button>
-                <button onclick="game.resetToHome()" class="flex-1 py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition flex items-center justify-center gap-1.5">
-                    <i class="fa-solid fa-house"></i> <span id="i18n-backHome">Main Menu</span>
+                <button onclick="resetToSetup()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 px-4 rounded-2xl shadow-md btn-bounce text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span id="btn-restart-txt">Try Again</span>
                 </button>
             </div>
-        </section>
+        </div>
 
     </main>
 
-    <footer class="w-full text-center py-4 text-xs text-slate-500 border-t border-slate-800/80 bg-slate-950">
-        <p id="i18n-footerText">Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz</p>
-    </footer>
-
     <script>
-        // MULTI-LANGUAGE TRANSLATION DICTIONARY
-        const I18N = {
-            zh: {
-                appName: "全马 UASA 智力大冒险",
-                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
-                badgeKssr: "🇲🇾 适配 UASA 格式与 KSSR Semakan 课程",
-                heroSetupTitle: "创建你的学习勇士角色",
-                heroSetupDesc: "选择学校源流与年级，开始 UASA 模拟练习！",
-                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> 选择学校源流 (Jenis Sekolah):",
-                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> 选择年级 (UASA 评估级别):",
-                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> 选择英雄小伙伴:",
-                nextSubjectBtn: "下一步：选择 UASA 科目与单元",
-                backSetup: "重选学校/年级",
-                selectSubjectTitle: "1. 选择 UASA 评估科目",
-                selectUnitTitle: "2. 选择练习范围 (单元 / 综合练习)",
-                selectModeTitle: "3. 选择挑战模式",
-                modeAdventureTitle: "UASA 甲组 (Bahagian A) 闯关",
-                modeAdventureDesc: "解答单选题击败怪兽，赢取学业优胜！",
-                modeTimeAttackTitle: "60秒 UASA 限时冲刺",
-                modeTimeAttackDesc: "考验答题速度与敏捷度！",
-                modeAiTitle: "AI 智能 UASA 出题 <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI 实时依据大纲或所选单元生成全新题目！",
-                startGameBtn: "开启 UASA 练习！",
-                explanationTitle: "UASA 答案解析 / Penjelasan:",
-                nextQBtn: "下一题",
-                totalScore: "获得总分",
-                accuracy: "正确率",
-                starsEarned: "收获星星",
-                playAgain: "再玩一次",
-                backHome: "返回主页",
-                aiLoading: "Gemini AI 正在生成 UASA 题目...",
-                aiLoadingSub: "针对您选择的单元与 KSSR Semakan 课程标准...",
-                footerText: "马来西亚 UASA (Ujian Akhir Sesi Akademik) 华小 • 国小 • 淡小 智力闯关",
-                gradeSuffix: "年级",
-                resVictoryTitle: "🎉 UASA 闯关成功！",
-                resVictorySub: "太棒了！你的表现达到优异标准！",
-                resDefeatTitle: "💪 继续加油，再接再厉！",
-                resDefeatSub: "查阅解析并重新练习，提升你的 UASA 成绩！",
-                monsterName: "UASA 知识小怪兽",
-                tpLabel: "UASA 掌握级别 (Tahap Penguasaan):"
+        /* STATE VARIABLES */
+        var currentLang = 'en';
+        var selectedStream = 'SJKC';
+        var selectedGrade = 4;
+        var selectedSubject = 'sejarah';
+        var practiceType = 'full';
+
+        var currentQuestions = [];
+        var currentQuestionIdx = 0;
+        var score = 0;
+        var combo = 0;
+        var correctAnswersCount = 0;
+
+        /* MULTI-LANGUAGE TRANSLATION DICTIONARY */
+        var i18n = {
+            en: {
+                navTitle: "UASA Primary Quest",
+                setupTitle: "Learning Stage Setup",
+                lblStream: "School Stream:",
+                lblGrade: "Select Standard / Grade:",
+                lblSubject: "Select Subject:",
+                lblModeType: "Practice Scope:",
+                modeFull: "Full Syllabus (UASA Mock Exam)",
+                modeUnit: "Topical / Unit Practice",
+                btnStart: "Start Quiz Quest!",
+                explanationTitle: "UASA Concept Explanation:",
+                btnNext: "Next Question",
+                resultTitle: "Assessment Complete!",
+                resultSubtitle: "You have completed the UASA KSSR assessment practice.",
+                finalScoreLbl: "Total Score",
+                accuracyLbl: "Accuracy",
+                btnRestart: "Try Again",
+                gradePrefix: "Standard",
+                allUnits: "All Units Combined",
+                questionCount: "Question {current} of {total}",
+                subjects: {
+                    sejarah: "History (Sejarah)",
+                    sn: "Science (Sains)",
+                    math: "Mathematics (Matematik)",
+                    bc: "Chinese (华文)",
+                    bm: "Malay (Bahasa Melayu)",
+                    bi: "English Language",
+                    bt: "Tamil (தமிழ்)"
+                }
             },
             ms: {
-                appName: "Pengembaraan Kuiz UASA Sekolah MY",
-                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
-                badgeKssr: "🇲🇾 Selaras Format UASA & KSSR Semakan",
-                heroSetupTitle: "Cipta Wira Pembelajaran Anda",
-                heroSetupDesc: "Pilih aliran sekolah & tahun/darjah anda!",
-                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Pilih Aliran Sekolah (Jenis Sekolah):",
-                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Pilih Tahun / Darjah (Tahap UASA):",
-                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Pilih Rakan Wira:",
-                nextSubjectBtn: "Seterusnya: Pilih Subjek & Unit",
-                backSetup: "Tukar Sekolah / Darjah",
-                selectSubjectTitle: "1. Pilih Subjek UASA",
-                selectUnitTitle: "2. Pilih Cakupan Latihan (Unit / Komprehensif)",
-                selectModeTitle: "3. Pilih Mod Cabaran",
-                modeAdventureTitle: "Cabaran UASA Bahagian A",
-                modeAdventureDesc: "Jawab soalan objektif untuk menewaskan raksasa!",
-                modeTimeAttackTitle: "Pecutan 60 Saat UASA",
-                modeTimeAttackDesc: "Uji kepantasan dan ketepatan jawapan anda!",
-                modeAiTitle: "Penjana AI UASA <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI menjana soalan mengikut unit yang dipilih!",
-                startGameBtn: "Mula Permainan UASA!",
-                explanationTitle: "Penjelasan / Explanation:",
-                nextQBtn: "Soalan Seterusnya",
-                totalScore: "Jumlah Markah",
-                accuracy: "Ketepatan",
-                starsEarned: "Bintang Diraih",
-                playAgain: "Main Lagi",
-                backHome: "Halaman Utama",
-                aiLoading: "Gemini AI sedang menjana soalan UASA...",
-                aiLoadingSub: "Mengikut Unit & Kurikulum KSSR Semakan...",
-                footerText: "Kuiz Pintar UASA (Ujian Akhir Sesi Akademik) SJKC • SK • SJKT Malaysia",
-                gradeSuffix: "Tahun",
-                resVictoryTitle: "🎉 Tahniah! Latihan UASA Berjaya!",
-                resVictorySub: "Anda telah menunjukkan penguasaan ilmu yang cemerlang!",
-                resDefeatTitle: "💪 Teruskan Usaha!",
-                resDefeatSub: "Semak jawapan dan cuba lagi untuk tingkatkan keputusan UASA!",
-                monsterName: "Raksasa UASA",
-                tpLabel: "Tahap Penguasaan UASA:"
+                navTitle: "Cabaran Pintar UASA",
+                setupTitle: "Tetapan Tahap Latihan",
+                lblStream: "Pilih Aliran Sekolah:",
+                lblGrade: "Pilih Tahun / Darjah:",
+                lblSubject: "Pilih Subjek:",
+                lblModeType: "Skop Latihan:",
+                modeFull: "Ujian Komprehensif (Format UASA)",
+                modeUnit: "Latihan Mengikut Unit / Bab",
+                btnStart: "Mula Cabaran Sekarang!",
+                explanationTitle: "Penerangan Konsep UASA:",
+                btnNext: "Soalan Seterusnya",
+                resultTitle: "Penilaian Selesai!",
+                resultSubtitle: "Tahniah! Anda telah menyelesaikan latihan format UASA.",
+                finalScoreLbl: "Markah Keseluruhan",
+                accuracyLbl: "Ketepatan",
+                btnRestart: "Cuba Lagi",
+                gradePrefix: "Tahun",
+                allUnits: "Semua Unit Keseluruhan",
+                questionCount: "Soalan {current} daripada {total}",
+                subjects: {
+                    sejarah: "Sejarah",
+                    sn: "Sains",
+                    math: "Matematik",
+                    bc: "Bahasa Cina",
+                    bm: "Bahasa Melayu",
+                    bi: "Bahasa Inggeris",
+                    bt: "Bahasa Tamil"
+                }
             },
-            en: {
-                appName: "UASA Primary Quiz Adventure",
-                appSubtitle: "Ujian Akhir Sesi Akademik • SJK(C) / SK / SJK(T)",
-                badgeKssr: "🇲🇾 Format UASA & KSSR Semakan Aligned",
-                heroSetupTitle: "Create Your Learning Hero",
-                heroSetupDesc: "Select your school stream and standard to begin!",
-                schoolTypeLabel: "<i class='fa-solid fa-school text-indigo-400'></i> Select School Stream (Jenis Sekolah):",
-                gradeLabel: "<i class='fa-solid fa-cubes text-yellow-400'></i> Select Standard / Grade (UASA Assessment Level):",
-                heroSelectLabel: "<i class='fa-solid fa-user-astronaut text-purple-400'></i> Select Hero Companion:",
-                nextSubjectBtn: "Next: Choose Subject & Unit",
-                backSetup: "Change School / Standard",
-                selectSubjectTitle: "1. Select UASA Subject",
-                selectUnitTitle: "2. Select Practice Scope (Unit / Comprehensive)",
-                selectModeTitle: "3. Select Challenge Mode",
-                modeAdventureTitle: "UASA Section A Battle",
-                modeAdventureDesc: "Answer objective questions to defeat monsters!",
-                modeTimeAttackTitle: "60s UASA Speed Sprint",
-                modeTimeAttackDesc: "Fast-paced quick response practice!",
-                modeAiTitle: "AI UASA Generator <span class='bg-purple-500 text-white text-[10px] px-1.5 py-0.5 rounded'>Gemini</span>",
-                modeAiDesc: "AI generates live questions according to selected unit!",
-                startGameBtn: "Start UASA Challenge!",
-                explanationTitle: "UASA Explanation / Penjelasan:",
-                nextQBtn: "Next Question",
-                totalScore: "Total Score",
-                accuracy: "Accuracy",
-                starsEarned: "Stars Earned",
-                playAgain: "Try Again",
-                backHome: "Main Menu",
-                aiLoading: "Gemini AI is generating UASA questions...",
-                aiLoadingSub: "Aligned with your chosen Unit & KSSR Semakan...",
-                footerText: "Malaysia UASA (Ujian Akhir Sesi Akademik) • SJKC, SK & SJKT KSSR Semakan Quiz",
-                gradeSuffix: "Std",
-                resVictoryTitle: "🎉 UASA Practice Victory!",
-                resVictorySub: "Outstanding performance! You mastered this session!",
-                resDefeatTitle: "💪 Keep Practice Going!",
-                resDefeatSub: "Review the answers and try again to improve your UASA score!",
-                monsterName: "UASA Quiz Monster",
-                tpLabel: "UASA Performance Level:"
+            zh: {
+                navTitle: "UASA 小学智力大冒险",
+                setupTitle: "学习关卡配置",
+                lblStream: "选择学校源流：",
+                lblGrade: "选择年级：",
+                lblSubject: "选择评估科目：",
+                lblModeType: "练习范围：",
+                modeFull: "全册综合练习 (UASA 模拟考)",
+                modeUnit: "单元 / 章节针对练习",
+                btnStart: "开始答题大冒险！",
+                explanationTitle: "UASA 考点解析：",
+                btnNext: "下一题",
+                resultTitle: "评估完成！",
+                resultSubtitle: "已完成 KSSR Semakan 规格练习测试",
+                finalScoreLbl: "最终得分",
+                accuracyLbl: "正确率",
+                btnRestart: "再练一次",
+                gradePrefix: "年级",
+                allUnits: "所有单元综合",
+                questionCount: "第 {current} 题 / 共 {total} 题",
+                subjects: {
+                    sejarah: "历史 (Sejarah)",
+                    sn: "科学 (Sains)",
+                    math: "数学 (Matematik)",
+                    bc: "华文 (Bahasa Cina)",
+                    bm: "国文 (Bahasa Melayu)",
+                    bi: "英文 (English)",
+                    bt: "淡米尔文 (தமிழ்)"
+                }
             }
         };
 
-        // KSSR UNIT SYLLABUS DEFINITIONS BY SUBJECT
-        const UNITS_DATABASE = {
-            BC: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: '单元一：词语理解与短语分析', ms: 'Unit 1: Pemahaman Kosa Kata', en: 'Unit 1: Vocabulary & Phrases' },
-                { id: 'u2', zh: '单元二：成语应用与修辞手法', ms: 'Unit 2: Peribahasa & Simpulan Bahasa', en: 'Unit 2: Idioms & Figurative Language' },
-                { id: 'u3', zh: '单元三：句型转换与标点符号', ms: 'Unit 3: Structur Ayat & Tanda Baca', en: 'Unit 3: Sentence Types & Punctuation' },
-                { id: 'u4', zh: '单元四：阅读理解与逻辑思维', ms: 'Unit 4: Pemahaman Petikan', en: 'Unit 4: Reading Comprehension' }
-            ],
-            BM: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'Unit 1: Tatabahasa & Penjodoh Bilangan', ms: 'Unit 1: Tatabahasa & Penjodoh Bilangan', en: 'Unit 1: Grammar & Classifiers' },
-                { id: 'u2', zh: 'Unit 2: Kata Ganda & Imbuhan', ms: 'Unit 2: Kata Ganda & Imbuhan', en: 'Unit 2: Reduplicated Words & Affixes' },
-                { id: 'u3', zh: 'Unit 3: Peribahasa & Simpulan Bahasa', ms: 'Unit 3: Peribahasa & Simpulan Bahasa', en: 'Unit 3: Proverbs & Idioms' },
-                { id: 'u4', zh: 'Unit 4: Pemahaman Petikan & Kesalahan Ejaan', ms: 'Unit 4: Pemahaman Petikan & Kesalahan Ejaan', en: 'Unit 4: Comprehension & Spelling' }
-            ],
-            BI: [
-                { id: 'all', zh: '📚 全册综合练习 (Full Mock Test)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', ms: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', en: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)' },
-                { id: 'u2', zh: 'Unit 2: Tenses & Sentence Construction', ms: 'Unit 2: Tenses & Sentence Construction', en: 'Unit 2: Tenses & Sentence Construction' },
-                { id: 'u3', zh: 'Unit 3: Vocabulary & Contextual Meaning', ms: 'Unit 3: Vocabulary & Contextual Meaning', en: 'Unit 3: Vocabulary & Contextual Meaning' },
-                { id: 'u4', zh: 'Unit 4: Reading Comprehension & Inference', ms: 'Unit 4: Reading Comprehension & Inference', en: 'Unit 4: Reading Comprehension & Inference' }
-            ],
-            English: [
-                { id: 'all', zh: '📚 全册综合练习 (Full Mock Test)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', ms: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)', en: 'Unit 1: Grammar (Nouns, Pronouns & Verbs)' },
-                { id: 'u2', zh: 'Unit 2: Tenses & Sentence Construction', ms: 'Unit 2: Tenses & Sentence Construction', en: 'Unit 2: Tenses & Sentence Construction' },
-                { id: 'u3', zh: 'Unit 3: Vocabulary & Contextual Meaning', ms: 'Unit 3: Vocabulary & Contextual Meaning', en: 'Unit 3: Vocabulary & Contextual Meaning' },
-                { id: 'u4', zh: 'Unit 4: Reading Comprehension & Inference', ms: 'Unit 4: Reading Comprehension & Inference', en: 'Unit 4: Reading Comprehension & Inference' }
-            ],
-            Math: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: '单元 1：整数与基本运算 (Nombor Bulat)', ms: 'Unit 1: Nombor Bulat & Operasi Asas', en: 'Unit 1: Whole Numbers & Operations' },
-                { id: 'u2', zh: '单元 2：分数、小数与百分比', ms: 'Unit 2: Pecahan, Perpuluhan & Peratus', en: 'Unit 2: Fractions, Decimals & Percentages' },
-                { id: 'u3', zh: '单元 3：钱币与度量衡 (Wang & Ukuran)', ms: 'Unit 3: Wang, Panjang, Jisim & Isipadu', en: 'Unit 3: Money & Measurements' },
-                { id: 'u4', zh: '单元 4：时间、空间与数据处理', ms: 'Unit 4: Masa, Ruang & Pengendalian Data', en: 'Unit 4: Time, Shape & Data Analysis' }
-            ],
-            Matematik: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'Unit 1: Nombor Bulat & Operasi Asas', ms: 'Unit 1: Nombor Bulat & Operasi Asas', en: 'Unit 1: Whole Numbers & Operations' },
-                { id: 'u2', zh: 'Unit 2: Pecahan, Perpuluhan & Peratus', ms: 'Unit 2: Pecahan, Perpuluhan & Peratus', en: 'Unit 2: Fractions, Decimals & Percentages' },
-                { id: 'u3', zh: 'Unit 3: Wang & Pengukuran', ms: 'Unit 3: Wang & Pengukuran', en: 'Unit 3: Money & Measurements' },
-                { id: 'u4', zh: 'Unit 4: Masa, Ruang & Pengendalian Data', ms: 'Unit 4: Masa, Ruang & Pengendalian Data', en: 'Unit 4: Time, Shape & Data Analysis' }
-            ],
-            Science: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA 模拟)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: '单元 1：科学技能 (Kemahiran Saintifik)', ms: 'Unit 1: Kemahiran Saintifik', en: 'Unit 1: Scientific Skills' },
-                { id: 'u2', zh: '单元 2：生命科学 (Sains Hayat - 人类/植物)', ms: 'Unit 2: Sains Hayat (Manusia & Tumbuhan)', en: 'Unit 2: Life Science (Humans & Plants)' },
-                { id: 'u3', zh: '单元 3：物理科学 (光/声音/能)', ms: 'Unit 3: Sains Fizikal (Cahaya, Bunyi & Tenaga)', en: 'Unit 3: Physical Science (Light, Sound, Energy)' },
-                { id: 'u4', zh: '单元 4：材料与地球科学', ms: 'Unit 4: Sains Bahan & Bumi', en: 'Unit 4: Material & Earth Sciences' }
-            ],
-            Sains: [
-                { id: 'all', zh: '📚 全册综合练习 (UASA Set)', ms: '📚 Set Latihan Komprehensif (UASA)', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'Unit 1: Kemahiran Saintifik', ms: 'Unit 1: Kemahiran Saintifik', en: 'Unit 1: Scientific Skills' },
-                { id: 'u2', zh: 'Unit 2: Sains Hayat (Manusia, Haiwan & Tumbuhan)', ms: 'Unit 2: Sains Hayat', en: 'Unit 2: Life Science' },
-                { id: 'u3', zh: 'Unit 3: Sains Fizikal (Cahaya & Tenaga)', ms: 'Unit 3: Sains Fizikal', en: 'Unit 3: Physical Science' },
-                { id: 'u4', zh: 'Unit 4: Sains Bahan & Bumi', ms: 'Unit 4: Sains Bahan & Bumi', en: 'Unit 4: Material & Earth Sciences' }
-            ],
-            BT: [
-                { id: 'all', zh: '📚 全册综合练习 (Comprehensive)', ms: '📚 Set Latihan Komprehensif', en: '📚 Full Syllabus Comprehensive Test' },
-                { id: 'u1', zh: 'அலகு 1: இலக்கணம் (Grammar)', ms: 'Unit 1: Tata Bahasa Tamil', en: 'Unit 1: Tamil Grammar' },
-                { id: 'u2', zh: 'அலகு 2: சொற்களஞ்சியம் (Vocabulary)', ms: 'Unit 2: Kosa Kata', en: 'Unit 2: Vocabulary' },
-                { id: 'u3', zh: 'அலகு 3: வாசிப்புப் பகுதி (Reading)', ms: 'Unit 3: Pemahaman Petikan', en: 'Unit 3: Comprehension' }
-            ]
+        /* TOPICAL UNIT CATALOG FOR EACH SUBJECT & GRADE */
+        var unitData = {
+            sejarah: {
+                4: ["Unit 1: Mengenal Sejarah / 认识历史", "Unit 2: Saya dan Keluarga / 我与家庭", "Unit 3: Sejarah Sekolah / 学校历史", "Unit 4: Zaman Ais / 冰河时代", "Unit 5: Zaman Prasejarah / 石器时代", "Unit 6: Kerajaan Melayu Awal / 早期马六甲王朝"],
+                5: ["Unit 1: Institusi Raja / 王权制度", "Unit 2: Agama Islam & Kepercayaan / 宗教与信仰", "Unit 3: Bahasa Melayu / 马来语历史", "Unit 4: Campur Tangan Kuasa Asing / 外国势力的干涉", "Unit 5: Kemerdekaan Negara / 国家的独立"],
+                6: ["Unit 1: Pembentukan Malaysia / 马来西亚的成立", "Unit 2: Negeri-negeri di Malaysia / 马来西亚各州", "Unit 3: Rukun Negara / 国家原则", "Unit 4: Pencapaian & Sukan / 国家成就与体育"]
+            },
+            math: {
+                1: ["Unit 1: Nombor hingga 100 / 100以内的整数", "Unit 2: Tambah & Tolak / 基本加减法", "Unit 3: Wang / 钱币"],
+                2: ["Unit 1: Nombor hingga 1000 / 1000以内的整数", "Unit 2: Darab & Bahagi / 乘法与除法", "Unit 3: Pecahan / 分数"],
+                3: ["Unit 1: Nombor hingga 10 000 / 10000以内的整数", "Unit 2: Perpuluhan / 小数", "Unit 3: Masa & Waktu / 时间与时刻"],
+                4: ["Unit 1: Nombor hingga 100 000 / 100000以内的整数", "Unit 2: Pecahan, Perpuluhan & Peratus / 分数、小数与百分比", "Unit 3: Wang / 钱币应用"],
+                5: ["Unit 1: Nombor hingga 1 000 000 / 100万以内的整数", "Unit 2: Koordinat & Nisbah / 坐标与比率"],
+                6: ["Unit 1: Nombor Bulat & Nombor Perdana / 质数与合数", "Unit 2: Pengurusan Data / 数据处理"]
+            },
+            sn: {
+                1: ["Unit 1: Kemahiran Saintifik / 科学技能", "Unit 2: Deria Manusia / 人类的感官", "Unit 3: Benda Hidup / 生物与非生物"],
+                2: ["Unit 1: Tumbuh-tumbuhan / 植物的生长", "Unit 2: Terang dan Gelap / 光与暗", "Unit 3: Elektrik / 电路基础"],
+                3: ["Unit 1: Gigi Manusia / 人类的牙齿", "Unit 2: Haiwan & Tabiat Makan / 动物的食性", "Unit 3: Ketumpatan / 浮沉与密度"],
+                4: ["Unit 1: Pernafasan Manusia / 人类的呼吸", "Unit 2: Organ Pernafasan Haiwan / 动物的呼吸器官", "Unit 3: Sifat Cahaya / 光的特性"],
+                5: ["Unit 1: Kemandirian Spesies / 物种的生存", "Unit 2: Tenaga & Sumber / 能量与能源", "Unit 3: Haba / 热力与温度"],
+                6: ["Unit 1: Mikroorganisma / 微生物", "Unit 2: Daya & Tekanan / 力与压强", "Unit 3: Gerhana / 日食与月食"]
+            },
+            bc: {
+                1: ["单元 1: 汉字基础与拼音", "单元 2: 词语理解"],
+                2: ["单元 1: 句子结构", "单元 2: 标点符号"],
+                3: ["单元 1: 成语理解", "单元 2: 短文理解"],
+                4: ["单元 1: 词类辨析 (修辞与成语)", "单元 2: 现代文阅读理解"],
+                5: ["单元 1: 古诗与谚语", "单元 2: 关联词与句型"],
+                6: ["单元 1: UASA 综合阅读理解", "单元 2: 修辞手法与古文"]
+            },
+            bm: {
+                1: ["Unit 1: Tatabahasa Basic / Kata Nama", "Unit 2: Pemahaman Ringkas"],
+                2: ["Unit 1: Kata Kerja & Kata Adjektif", "Unit 2: Bina Ayat"],
+                3: ["Unit 1: Imbuhan Awalan", "Unit 2: Peribahasa & Simpulan Bahasa"],
+                4: ["Unit 1: Tatabahasa UASA (Kata Hubung)", "Unit 2: Pemahaman Petikan"],
+                5: ["Unit 1: Peribahasa Tahun 5", "Unit 2: Kesalahan Tatabahasa"],
+                6: ["Unit 1: Sintaksis & Ayat Majmuk", "Unit 2: Pemahaman UASA Format"]
+            },
+            bi: {
+                1: ["Unit 1: Phonics & Vocabulary", "Unit 2: Simple Sentences"],
+                2: ["Unit 1: Nouns & Pronouns", "Unit 2: Action Verbs"],
+                3: ["Unit 1: Present Continuous Tense", "Unit 2: Reading Comprehension"],
+                4: ["Unit 1: Grammar (Past Tense)", "Unit 2: UASA Reading & Vocabulary"],
+                5: ["Unit 1: Adverbs & Adjectives", "Unit 2: Contextual Comprehension"],
+                6: ["Unit 1: Advanced Grammar & Idioms", "Unit 2: UASA Text Comprehension"]
+            }
         };
 
-        // AUDIO SYNTHESIZER
-        class SoundEngine {
-            constructor() {
-                this.ctx = null;
-                this.muted = false;
+        /* COMPREHENSIVE KSSR & UASA QUESTION BANK */
+        var questionBank = {
+            sejarah: {
+                4: [
+                    {
+                        unit: "Unit 1: Mengenal Sejarah / 认识历史",
+                        q: {
+                            en: "Which of the following is considered a Primary Source (Sumber Primary) in history?",
+                            ms: "Manakah antara berikut merupakan Sumber Primary dalam kajian sejarah?",
+                            zh: "以下哪项是获取历史资料的主要资料（Sumber Primary）？"
+                        },
+                        options: [
+                            { en: "A. Ancient Fossils / Artifacts", ms: "A. Fosil / Artifak Kuno", zh: "A. 出土文物 / 化石" },
+                            { en: "B. School History Textbooks", ms: "B. Buku Teks Sejarah Sekolah", zh: "B. 历史教科书" },
+                            { en: "C. Newspaper Articles", ms: "C. Rencana Akhbar Moden", zh: "C. 现代报纸文章" },
+                            { en: "D. Encyclopedia Books", ms: "D. Buku Ensiklopedia", zh: "D. 百科全书" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "Primary sources are original, unedited historical materials such as fossils, artifacts, and original manuscripts.",
+                            ms: "Sumber primar ialah bahan asal yang belum diolah seperti fosil, artifak, dan manuskrip asal.",
+                            zh: "主要资料（Sumber Primary）是没有经过加工或编辑的原始资料，如手稿、化石和出土文物。"
+                        }
+                    },
+                    {
+                        unit: "Unit 6: Kerajaan Melayu Awal / 早期马六甲王朝",
+                        q: {
+                            en: "Why did Parameswara name the kingdom 'Melaka'?",
+                            ms: "Mengapakah Parameswara menamakan kerajaan beliau sebagai 'Melaka'?",
+                            zh: "拜里米苏拉（Parameswara）是以什么命名马六甲（Melaka）的？"
+                        },
+                        options: [
+                            { en: "A. The Melaka tree he rested under", ms: "A. Pokok Melaka tempat beliau berteduh", zh: "A. 他休息时所在的马六甲树" },
+                            { en: "B. The name of the white deer", ms: "B. Nama pelanduk putih yang berani", zh: "B. 勇敢白鹿的名字" },
+                            { en: "C. The name of his royal dog", ms: "C. Nama anjing buruan baginda", zh: "C. 随行猎犬的名字" },
+                            { en: "D. The mountain nearby", ms: "D. Nama gunung yang berdekatan", zh: "D. 附近的山峰" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "Parameswara named Melaka after resting under a Melaka tree where he witnessed a brave white deer kick his hunting dog.",
+                            ms: "Parameswara menamakan tempat tersebut sempena Pokok Melaka selepas menyaksikan peristiwa pelanduk putih menendang anjing buruannya.",
+                            zh: "拜里米苏拉在一棵马六甲树（Pokok Melaka）下休息时看到白鹿剔狗的奇景，因而以该树命名马六甲。"
+                        }
+                    }
+                ],
+                5: [
+                    {
+                        unit: "Unit 1: Institusi Raja / 王权制度",
+                        q: {
+                            en: "What title is used to address the Supreme Head of Malaysia?",
+                            ms: "Apakah gelaran bagi Ketua Utama Negara Malaysia?",
+                            zh: "马来西亚国家最高元首的正式尊称是什么？"
+                        },
+                        options: [
+                            { en: "A. Yang di-Pertuan Agong", ms: "A. Yang di-Pertuan Agong", zh: "A. 国家元首 (Yang di-Pertuan Agong)" },
+                            { en: "B. Perdana Menteri", ms: "B. Perdana Menteri", zh: "B. 首相 (Perdana Menteri)" },
+                            { en: "C. Yang di-Pertua Negeri", ms: "C. Yang di-Pertua Negeri", zh: "C. 州元首 (Yang di-Pertua Negeri)" },
+                            { en: "D. Sultan Pahang", ms: "D. Sultan Pahang", zh: "D. 彭亨州苏丹" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "The Supreme Head of Malaysia is the Yang di-Pertuan Agong, serving as the Constitutional Monarch.",
+                            ms: "Yang di-Pertuan Agong ialah Ketua Utama Negara Malaysia yang menaungi institusi Diraja.",
+                            zh: "马来西亚的最高国家元首是 Yang di-Pertuan Agong，立宪君主制的代表。"
+                        }
+                    }
+                ],
+                6: [
+                    {
+                        unit: "Unit 1: Pembentukan Malaysia / 马来西亚的成立",
+                        q: {
+                            en: "In which year was Malaysia officially formed?",
+                            ms: "Pada tahun berapakah Malaysia dibentuk secara rasmi?",
+                            zh: "马来西亚于哪一年正式成立？"
+                        },
+                        options: [
+                            { en: "A. 16 September 1963", ms: "A. 16 September 1963", zh: "A. 1963年9月16日" },
+                            { en: "B. 31 Ogos 1957", ms: "B. 31 Ogos 1957", zh: "B. 1957年8月31日" },
+                            { en: "C. 13 Mei 1969", ms: "C. 13 Mei 1969", zh: "C. 1969年5月13日" },
+                            { en: "D. 1 Ogos 1960", ms: "D. 1 Ogos 1960", zh: "D. 1960年8月1日" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "Malaysia was officially declared on 16 September 1963, uniting Malaya, Sabah, Sarawak, and Singapore (until 1965).",
+                            ms: "Malaysia dibentuk secara rasmi pada 16 September 1963 menggabungkan Persekutuan Tanah Melayu, Sabah, Sarawak dan Singapura.",
+                            zh: "马来西亚于1963年9月16日正式成立，由马来亚、沙巴、砂拉越及新加坡（后于1965年退出）联合组成。"
+                        }
+                    }
+                ]
+            },
+            math: {
+                1: [
+                    {
+                        unit: "Unit 2: Tambah & Tolak / 基本加减法",
+                        q: {
+                            en: "What is 15 + 8?",
+                            ms: "Berapakah 15 + 8?",
+                            zh: "15 + 8 等于多少？"
+                        },
+                        options: [
+                            { en: "A. 23", ms: "A. 23", zh: "A. 23" },
+                            { en: "B. 21", ms: "B. 21", zh: "B. 21" },
+                            { en: "C. 22", ms: "C. 22", zh: "C. 22" },
+                            { en: "D. 25", ms: "D. 25", zh: "D. 25" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "15 + 8 = 23.",
+                            ms: "15 + 8 = 23.",
+                            zh: "15 + 8 = 23。"
+                        }
+                    }
+                ],
+                4: [
+                    {
+                        unit: "Unit 1: Nombor hingga 100 000 / 100000以内的整数",
+                        q: {
+                            en: "What is the place value of digit '7' in 47,823?",
+                            ms: "Apakah nilai tempat bagi digit '7' dalam nombor 47,823?",
+                            zh: "在数字 47,823 中，数字 '7' 的数位（Place value）是什么？"
+                        },
+                        options: [
+                            { en: "A. Thousands (Ribu)", ms: "A. Ribu", zh: "A. 千位 (Ribu)" },
+                            { en: "B. Hundreds (Ratus)", ms: "B. Ratus", zh: "B. 百位 (Ratus)" },
+                            { en: "C. Ten thousands (Puluh Ribu)", ms: "C. Puluh Ribu", zh: "C. 万位 (Puluh Ribu)" },
+                            { en: "D. Tens (Puluh)", ms: "D. Puluh", zh: "D. 十位 (Puluh)" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "In 47,823: 3 is Ones, 2 is Tens, 8 is Hundreds, and 7 is Thousands.",
+                            ms: "Dalam 47,823: digit 7 berada pada nilai tempat ribu.",
+                            zh: "在 47,823 中：3是个位，2是十位，8是百位，7是千位。"
+                        }
+                    }
+                ]
+            },
+            sn: {
+                4: [
+                    {
+                        unit: "Unit 1: Pernafasan Manusia / 人类的呼吸",
+                        q: {
+                            en: "Which human organ is responsible for oxygen exchange during breathing?",
+                            ms: "Organ manakah yang bertanggungjawab untuk pertukaran gas oksigen semasa bernafas?",
+                            zh: "在人类呼吸过程中，负责气体交换的主要器官是什么？"
+                        },
+                        options: [
+                            { en: "A. Lungs (Paru-paru)", ms: "A. Paru-paru", zh: "A. 肺 (Paru-paru)" },
+                            { en: "B. Heart (Jantung)", ms: "B. Jantung", zh: "B. 心脏 (Jantung)" },
+                            { en: "C. Stomach (Perut)", ms: "C. Perut", zh: "C. 胃 (Perut)" },
+                            { en: "D. Kidneys (Buah Pinggang)", ms: "D. Buah Pinggang", zh: "D. 肾脏 (Buah Pinggang)" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "The lungs contain alveoli where oxygen is absorbed and carbon dioxide is released.",
+                            ms: "Paru-paru mengandungi alveolus yang menjalankan pertukaran gas oksigen dan karbon dioksida.",
+                            zh: "肺部包含肺泡，是吸收氧气与排出二氧化碳的气体交换中心。"
+                        }
+                    }
+                ]
+            },
+            bc: {
+                4: [
+                    {
+                        unit: "单元 1: 词类辨析 (修辞与成语)",
+                        q: {
+                            en: "Which idiom best describes working hard together towards a shared goal?",
+                            ms: "Manakah peribahasa Cina yang bermaksud bekerjasama untuk mencapai matlamat?",
+                            zh: "以下哪项成语的意思是“比喻大家心往一处想，力往一处使”？"
+                        },
+                        options: [
+                            { en: "A. 同心协力 (Working together with one heart)", ms: "A. 同心协力 (Bekerjasama)", zh: "A. 同心协力" },
+                            { en: "B. 画蛇添足 (Adding feet to a snake)", ms: "B. 画蛇添足 (Melakukan perkara sia-sia)", zh: "B. 画蛇添足" },
+                            { en: "C. 守株待兔 (Waiting by the tree stump for rabbits)", ms: "C. 守株待兔 (Menunggu tanpa berusaha)", zh: "C. 守株待兔" },
+                            { en: "D. 井底之蛙 (Frog at the bottom of the well)", ms: "D. 井底之蛙 (Berfikiran sempit)", zh: "D. 井底之蛙" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "'同心协力' means unite with common effort to achieve success.",
+                            ms: "'同心协力' bermaksud bekerjasama sehati sejiwa.",
+                            zh: "“同心协力”指思想一致，共同努力完成目标。"
+                        }
+                    }
+                ]
+            },
+            bm: {
+                4: [
+                    {
+                        unit: "Unit 1: Tatabahasa UASA (Kata Hubung)",
+                        q: {
+                            en: "Pilih kata hubung yang paling sesuai: 'Ali membaca buku _____ adiknya melukis gambar.'",
+                            ms: "Pilih kata hubung yang paling sesuai: 'Ali membaca buku _____ adiknya melukis gambar.'",
+                            zh: "请选择最适当的连词：'Ali membaca buku _____ adiknya melukis gambar.'"
+                        },
+                        options: [
+                            { en: "A. manakala (while)", ms: "A. manakala", zh: "A. manakala (然而/同时)" },
+                            { en: "B. kerana (because)", ms: "B. kerana", zh: "B. kerana (因为)" },
+                            { en: "C. supaya (so that)", ms: "C. supaya", zh: "C. supaya (以便)" },
+                            { en: "D. lalu (then)", ms: "D. lalu", zh: "D. lalu (接着)" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "'Manakala' is used to connect two contrasting or simultaneous actions performed by different individuals.",
+                            ms: "'Manakala' digunakan untuk menunjukkan dua perbuatan yang berlaku serentak oleh dua pihak berbeza.",
+                            zh: "'Manakala' 用于连接两个不同对象同时或对比进行的动作。"
+                        }
+                    }
+                ]
+            },
+            bi: {
+                4: [
+                    {
+                        unit: "Unit 1: Grammar (Past Tense)",
+                        q: {
+                            en: "Choose the correct past tense verb: 'Yesterday, Sarah _____ her homework at the library.'",
+                            ms: "Pilih kata kerja Past Tense yang betul: 'Yesterday, Sarah _____ her homework at the library.'",
+                            zh: "请选择正确的过去式动词：'Yesterday, Sarah _____ her homework at the library.'"
+                        },
+                        options: [
+                            { en: "A. completed", ms: "A. completed", zh: "A. completed" },
+                            { en: "B. completes", ms: "B. completes", zh: "B. completes" },
+                            { en: "C. is completing", ms: "C. is completing", zh: "C. is completing" },
+                            { en: "D. complete", ms: "D. complete", zh: "D. complete" }
+                        ],
+                        ans: 0,
+                        explain: {
+                            en: "The time keyword 'Yesterday' requires Simple Past Tense ('completed').",
+                            ms: "Kata kunci masa 'Yesterday' memerlukan penggunaan Simple Past Tense ('completed').",
+                            zh: "时间关键词 'Yesterday' 表示过去发生的动作，须使用过去式 'completed'。"
+                        }
+                    }
+                ]
             }
+        };
 
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }
-
-            toggleMute() {
-                this.muted = !this.muted;
-                const icon = document.getElementById('muteBtnIcon');
-                if (icon) {
-                    icon.className = this.muted ? "fa-solid fa-volume-xmark text-red-400" : "fa-solid fa-volume-high text-xs md:text-sm";
-                }
-            }
-
-            playCorrect() {
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now);
-                osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.1);
-                osc.frequency.exponentialRampToValueAtTime(783.99, now + 0.2);
-                osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.35);
-
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.4);
-            }
-
-            playWrong() {
-                if (this.muted) return;
-                this.init();
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(130, now + 0.25);
-
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(now + 0.3);
-            }
-
-            playVictory() {
-                if (this.muted) return;
-                this.init();
-                const notes = [523.25, 659.25, 783.99, 1046.50, 880, 1046.50];
-                notes.forEach((freq, idx) => {
-                    setTimeout(() => {
-                        const now = this.ctx.currentTime;
-                        const osc = this.ctx.createOscillator();
-                        const gain = this.ctx.createGain();
-                        osc.type = 'triangle';
-                        osc.frequency.setValueAtTime(freq, now);
-                        gain.gain.setValueAtTime(0.25, now);
-                        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                        osc.connect(gain);
-                        gain.connect(this.ctx.destination);
-                        osc.start();
-                        osc.stop(now + 0.25);
-                    }, idx * 120);
-                });
-            }
+        function selectInitialLang(lang) {
+            changeLanguage(lang);
+            document.getElementById('screen-lang-init').classList.add('hidden');
+            document.getElementById('screen-setup').classList.remove('hidden');
         }
 
-        const audioManager = new SoundEngine();
+        function changeLanguage(lang) {
+            currentLang = lang;
+            document.getElementById('lang-select').value = lang;
 
-        // CONFETTI SYSTEM
-        class ParticleSystem {
-            constructor() {
-                this.canvas = document.getElementById('effectsCanvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.particles = [];
-                this.resize();
-                window.addEventListener('resize', () => this.resize());
-                this.animate();
-            }
+            document.getElementById('nav-title').innerText = i18n[lang].navTitle;
+            document.getElementById('txt-setup-title').innerText = i18n[lang].setupTitle;
+            document.getElementById('lbl-stream').children[1].innerText = i18n[lang].lblStream;
+            document.getElementById('lbl-grade').children[1].innerText = i18n[lang].lblGrade;
+            document.getElementById('lbl-subject').children[1].innerText = i18n[lang].lblSubject;
+            document.getElementById('lbl-mode-type').children[1].innerText = i18n[lang].lblModeType;
+            document.getElementById('txt-mode-full').innerText = i18n[lang].modeFull;
+            document.getElementById('txt-mode-unit').innerText = i18n[lang].modeUnit;
+            document.getElementById('btn-start-txt').innerText = i18n[lang].btnStart;
+            document.getElementById('txt-explanation-title').innerText = i18n[lang].explanationTitle;
+            document.getElementById('txt-btn-next').innerText = i18n[lang].btnNext;
+            document.getElementById('txt-result-title').innerText = i18n[lang].resultTitle;
+            document.getElementById('txt-result-subtitle').innerText = i18n[lang].resultSubtitle;
+            document.getElementById('txt-final-score-lbl').innerText = i18n[lang].finalScoreLbl;
+            document.getElementById('txt-accuracy-lbl').innerText = i18n[lang].accuracyLbl;
+            document.getElementById('btn-restart-txt').innerText = i18n[lang].btnRestart;
 
-            resize() {
-                this.canvas.width = window.innerWidth;
-                this.canvas.height = window.innerHeight;
-            }
-
-            burst(x, y, count = 35) {
-                const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ec4899', '#8b5cf6'];
-                for (let i = 0; i < count; i++) {
-                    this.particles.push({
-                        x: x || this.canvas.width / 2,
-                        y: y || this.canvas.height / 2,
-                        vx: (Math.random() - 0.5) * 12,
-                        vy: (Math.random() - 0.8) * 12,
-                        size: Math.random() * 8 + 4,
-                        color: colors[Math.floor(Math.random() * colors.length)],
-                        life: 1,
-                        decay: Math.random() * 0.02 + 0.015
-                    });
-                }
-            }
-
-            animate() {
-                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                for (let i = this.particles.length - 1; i >= 0; i--) {
-                    const p = this.particles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    p.vy += 0.3;
-                    p.life -= p.decay;
-
-                    if (p.life <= 0) {
-                        this.particles.splice(i, 1);
-                    } else {
-                        this.ctx.globalAlpha = p.life;
-                        this.ctx.fillStyle = p.color;
-                        this.ctx.beginPath();
-                        this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                        this.ctx.fill();
-                    }
-                }
-                requestAnimationFrame(() => this.animate());
-            }
+            initGradeOptions();
+            renderSubjects();
+            updateUnitDropdown();
         }
 
-        let fxSystem;
-
-        // SUBJECT-SPECIFIC FALLBACK QUESTION GENERATOR
-        const FALLBACK_SUBJECT_QUESTIONS = {
-            BC: [
-                { q: "请选出下列句子中成语使用最恰当的一项：", opts: ["他在台上表演时神采奕奕，赢得了阵阵掌声。", "经过这次惨痛的教训，他终于画蛇添足。", "这里的风景非常漂亮，真是让人坐井观天。", "这场比赛十分精彩，双方实力不分轩輊。"], ans: 0, exp: "“神采奕奕”形容精神饱满，容光焕发，适合形容精彩的舞台表现。" },
-                { q: "“凡事都要三思而后行。”这句话告诉我们什么道理？", opts: ["做事前要深思熟虑", "走路时要注意安全", "说话时要讲究礼貌", "学习时要勤奋努力"], ans: 0, exp: "“三思而后行”指反复考虑后再采取行动。" },
-                { q: "找出与“居安思危”意思相近的词语：", opts: ["未雨绸缪", "自高自大", "盲目跟风", "纸上谈兵"], ans: 0, exp: "“居安思危”与“未雨绸缪”都表示事先做好防范准备。" }
-            ],
-            BM: [
-                { q: "Pilih kata ganda yang betul: 'Murid-murid sedang membaca ______ di perpustakaan.'", opts: ["buku-buku", "rumah-rumah", "meja-meja", "kasut-kasut"], ans: 0, exp: "'Buku-buku' ialah kata ganda yang merujuk kepada bahan bacaan." },
-                { q: "Pilih penjodoh bilangan yang sesuai: 'Ibu membeli se______ pisang di pasar.'", opts: ["sisir", "biji", "batang", "helai"], ans: 0, exp: "Penjodoh bilangan bagi buah pisang dalam gugusan kecil ialah 'sisir'." },
-                { q: "Apakah lawan kata bagi 'rajin'?", opts: ["malas", "pandai", "kemas", "bijak"], ans: 0, exp: "Lawan kata bagi 'rajin' ialah 'malas'." }
-            ],
-            BI: [
-                { q: "Which of the following sentences uses the correct past tense?", opts: ["She walked to school yesterday.", "She walk to school yesterday.", "She is walking to school yesterday.", "She walks to school yesterday."], ans: 0, exp: "The word 'yesterday' indicates simple past tense, so 'walked' is correct." },
-                { q: "Choose the correct plural form of 'child':", opts: ["children", "childs", "childes", "childrens"], ans: 0, exp: "The plural form of 'child' is 'children'." },
-                { q: "Identify the adjective in this sentence: 'The blue car is fast.'", opts: ["blue", "car", "is", "drove"], ans: 0, exp: "'Blue' is an adjective describing the color of the car." }
-            ],
-            Math: [
-                { q: "在 54 820 中，数字 '4' 的数值 (Nilai Digit) 是什么？", opts: ["4000", "400", "40", "40000"], ans: 0, exp: "数字 4 在千位 (ribu)，其数值为 4000。" },
-                { q: "计算：12.5 kg + 3.85 kg = ?", opts: ["16.35 kg", "15.35 kg", "16.85 kg", "15.85 kg"], ans: 0, exp: "12.50 + 3.85 = 16.35 kg。" },
-                { q: "一个正方形的边长是 6 cm，它的周长 (Perimeter) 是多少？", opts: ["24 cm", "36 cm", "12 cm", "18 cm"], ans: 0, exp: "正方形周长 = 4 × 6 cm = 24 cm。" }
-            ],
-            Matematik: [
-                { q: "Apakah nilai tempat bagi digit 7 dalam nombor 72 305?", opts: ["Puluh ribu", "Ribu", "Ratus", "Sa"], ans: 0, exp: "Digit 7 berada pada kedudukan nilai tempat 'Puluh ribu'." },
-                { q: "Hitungkan: 15.4 kg + 2.85 kg = ?", opts: ["18.25 kg", "17.25 kg", "18.15 kg", "17.85 kg"], ans: 0, exp: "15.40 + 2.85 = 18.25 kg." },
-                { q: "Berapakah perimeter bagi sebuah segi empat sama yang bersisi 5 cm?", opts: ["20 cm", "25 cm", "10 cm", "15 cm"], ans: 0, exp: "Perimeter segi empat sama = 4 × 5 cm = 20 cm." }
-            ],
-            Science: [
-                { q: "下列哪种植物是通过“孢子” (Spora) 来繁殖的？", opts: ["羊齿植物 (Paku-pakis)", "香蕉树 (Pokok Pisang)", "凤仙花 (Pokok Keembung)", "芒果树 (Pokok Manga)"], ans: 0, exp: "羊齿植物（蕨类）没有花朵，依靠叶背的孢子囊繁殖。" },
-                { q: "光合作用 (Fotosintesis) 过程中，植物吸收什么气体并释放氧气？", opts: ["二氧化碳 (Karbon dioksida)", "氢气 (Hidrogen)", "氮气 (Nitrogen)", "一氧化碳 (Karbon monoksida)"], ans: 0, exp: "植物在光合作用中吸收二氧化碳，释放氧气。" },
-                { q: "水的三态变化中，水蒸气变成水滴的过程称为什么？", opts: ["凝聚 (Kondensasi)", "蒸发 (Penyejatan)", "熔化 (Peleburan)", "凝固 (Pembekuan)"], ans: 0, exp: "气体变成液体的过程称为凝聚 (Kondensasi)。" }
-            ],
-            Sains: [
-                { q: "Tumbuhan manakah yang membiak melalui spora?", opts: ["Paku-pakis", "Pokok Pisang", "Pokok Keembung", "Pokok Mangga"], ans: 0, exp: "Paku-pakis membiak melalui spora di bawah permuka daun." },
-                { q: "Apakah gas yang diserap oleh tumbuhan semasa proses fotosintesis?", opts: ["Karbon dioksida", "Oksigen", "Nitrogen", "Hidrogen"], ans: 0, exp: "Tumbuhan menyerap karbon dioksida dan membebaskan oksigen semasa fotosintesis." },
-                { q: "Proses perubahan cecair kepada gas dipanggil:", opts: ["Penyejatan", "Kondensasi", "Peleburan", "Pembekuan"], ans: 0, exp: "Proses daripada cecair menjadi gas dinamakan penyejatan." }
-            ],
-            BT: [
-                { q: "கீழ்கண்டவற்றுள் எது சரியான பெயர்ச்சொல்?", opts: ["மரம்", "ஓடினான்", "வேகமாக", "அழகான"], ans: 0, exp: "'மரம்' என்பது ஒரு பெயர்ச்சொல் (Noun) ஆகும்." },
-                { q: "எதிர்ச்சொல் எழுதுக: 'இரவு'", opts: ["பகல்", "காலை", "மாலை", "இருள்"], ans: 0, exp: "'இரவு' என்பதன் எதிர்ச்சொல் 'பகல்' ஆகும்." },
-                { q: "சரியான சொல்லைத் தேர்ந்தெடுக்க: 'மாணவர்கள் பாடம் ______.'", opts: ["படித்தனர்", "எழுதினான்", "சென்றான்", "ஓடினார்"], ans: 0, exp: "பன்மை எழுவாய்க்கு 'படித்தனர்' என்ற பன்மைப் பயனிலை வர வேண்டும்." }
-            ]
-        };
-
-        class GameEngine {
-            constructor() {
-                this.lang = 'zh';
-                this.school = 'SJKC';
-                this.grade = 4;
-                this.subject = 'BC';
-                this.unitId = 'all'; // Default to all / comprehensive
-                this.avatar = '🐯';
-                this.avatarName = 'Tiger Hero';
-                this.mode = 'adventure';
-
-                this.score = 0;
-                this.stars = 0;
-                this.lives = 3;
-                this.currentQuestionIdx = 0;
-                this.questions = [];
-                this.timerInterval = null;
-                this.timeLeft = 60;
-
-                this.heroAvatars = [
-                    { emoji: '🐯', name: { en: 'Tiger Hero', ms: 'Wira Harimau', zh: '小虎勇士' } },
-                    { emoji: '🦉', name: { en: 'Wise Owl', ms: 'Burung Hantu Bijak', zh: '智慧猫头鹰' } },
-                    { emoji: '🤖', name: { en: 'Tech Robot', ms: 'Robot Tekno', zh: '科技机器人' } },
-                    { emoji: '🐼', name: { en: 'Kung Fu Panda', ms: 'Panda Kung Fu', zh: '功夫熊猫' } }
-                ];
-            }
-
-            init() {
-                document.getElementById('step0-language').classList.remove('hidden');
-                document.getElementById('step1-setup').classList.add('hidden');
-                document.getElementById('step2-subject').classList.add('hidden');
-                document.getElementById('step3-game').classList.add('hidden');
-                document.getElementById('step4-result').classList.add('hidden');
-
-                this.renderGradeButtons();
-                this.renderHeroSelector();
-                this.selectSchool('SJKC');
-                this.selectGrade(4);
-                this.selectHero(0);
-                this.applyTranslations();
-            }
-
-            setInitialLanguage(selectedLang) {
-                this.lang = selectedLang;
-                document.getElementById('langSelector').value = selectedLang;
-                this.applyTranslations();
-
-                document.getElementById('step0-language').classList.add('hidden');
-                document.getElementById('step1-setup').classList.remove('hidden');
-            }
-
-            changeLanguage(newLang) {
-                this.lang = newLang;
-                this.applyTranslations();
-            }
-
-            applyTranslations() {
-                const dict = I18N[this.lang] || I18N['zh'];
-                for (let key in dict) {
-                    const el = document.getElementById(`i18n-${key}`);
-                    if (el) {
-                        el.innerHTML = dict[key];
-                    }
-                }
-                
-                this.renderGradeButtons();
-                this.renderHeroSelector();
-                this.renderSubjects();
-                this.renderUnits();
-            }
-
-            renderGradeButtons() {
-                const container = document.getElementById('gradeButtonsContainer');
-                container.innerHTML = '';
-                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
-
-                for (let i = 1; i <= 6; i++) {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.id = `grade-btn-${i}`;
-                    btn.onclick = () => this.selectGrade(i);
-                    const isSel = (this.grade === i);
-                    
-                    btn.className = `py-3 rounded-xl border-2 font-bold text-sm md:text-base transition flex flex-col items-center justify-center ${
-                        isSel 
-                            ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 shadow-md shadow-yellow-500/20' 
-                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-500'
-                    }`;
-                    btn.innerHTML = `<span>${this.lang === 'zh' ? `${i}${suffix}` : `${suffix} ${i}`}</span><span class="text-[10px] text-slate-400 font-normal">UASA ${i}</span>`;
-                    container.appendChild(btn);
-                }
-            }
-
-            renderHeroSelector() {
-                const container = document.getElementById('heroSelector');
-                container.innerHTML = '';
-                this.heroAvatars.forEach((h, idx) => {
-                    const card = document.createElement('div');
-                    card.id = `hero-card-${idx}`;
-                    card.onclick = () => this.selectHero(idx);
-                    const isSel = (this.avatar === h.emoji);
-
-                    card.className = `p-3 rounded-2xl border-2 cursor-pointer flex flex-col items-center justify-center transition ${
-                        isSel ? 'border-purple-400 bg-purple-500/20' : 'border-slate-700 bg-slate-800/60 hover:border-purple-400'
-                    }`;
-                    
-                    const heroName = h.name[this.lang] || h.name['zh'];
-                    card.innerHTML = `
-                        <div class="text-3xl mb-1">${h.emoji}</div>
-                        <div class="text-xs font-bold text-slate-300 text-center">${heroName}</div>
-                    `;
-                    container.appendChild(card);
-                });
-            }
-
-            selectSchool(type) {
-                this.school = type;
-                ['SJKC', 'SK', 'SJKT'].forEach(s => {
-                    const el = document.getElementById(`school-${s}`);
-                    if (el) {
-                        if (s === type) {
-                            el.classList.add('border-yellow-400', 'bg-yellow-500/10');
-                            el.classList.remove('border-slate-700', 'bg-slate-800/60');
-                        } else {
-                            el.classList.remove('border-yellow-400', 'bg-yellow-500/10');
-                            el.classList.add('border-slate-700', 'bg-slate-800/60');
-                        }
-                    }
-                });
-                this.checkSetupValid();
-            }
-
-            selectGrade(g) {
-                this.grade = g;
-                this.renderGradeButtons();
-                this.checkSetupValid();
-            }
-
-            selectHero(idx) {
-                this.avatar = this.heroAvatars[idx].emoji;
-                this.avatarName = this.heroAvatars[idx].name[this.lang] || this.heroAvatars[idx].name['zh'];
-                this.renderHeroSelector();
-                this.checkSetupValid();
-            }
-
-            checkSetupValid() {
-                const btn = document.getElementById('btnGoToSubjects');
-                if (this.school && this.grade) {
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50', 'cursor-not-allowed');
-                }
-            }
-
-            goToSubjectSelect() {
-                document.getElementById('step1-setup').classList.add('hidden');
-                document.getElementById('step2-subject').classList.remove('hidden');
-
-                const schoolNames = { SJKC: 'SJK(C) 华小', SK: 'SK Kebangsaan', SJKT: 'SJK(T) 淡小' };
-                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
-                document.getElementById('profileBadge').innerText = `${schoolNames[this.school]} • UASA ${this.lang === 'zh' ? `${this.grade}${suffix}` : `${suffix} ${this.grade}`}`;
-
-                this.renderSubjects();
-            }
-
-            backToSetup() {
-                document.getElementById('step2-subject').classList.add('hidden');
-                document.getElementById('step1-setup').classList.remove('hidden');
-            }
-
-            renderSubjects() {
-                const subjectGrid = document.getElementById('subjectGrid');
-                if (!subjectGrid) return;
-                subjectGrid.innerHTML = '';
-
-                let subjectsList = [];
-                if (this.school === 'SJKC') {
-                    subjectsList = [
-                        { key: 'BC', name: 'Bahasa Cina (华文)', icon: 'fa-book-open', color: 'text-red-400' },
-                        { key: 'Math', name: 'Matematik (数学)', icon: 'fa-calculator', color: 'text-blue-400' },
-                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
-                        { key: 'BI', name: 'English', icon: 'fa-font', color: 'text-emerald-400' },
-                        { key: 'Science', name: 'Sains (科学)', icon: 'fa-flask', color: 'text-purple-400' }
-                    ];
-                } else if (this.school === 'SK') {
-                    subjectsList = [
-                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
-                        { key: 'Matematik', name: 'Matematik', icon: 'fa-calculator', color: 'text-blue-400' },
-                        { key: 'English', name: 'English', icon: 'fa-font', color: 'text-emerald-400' },
-                        { key: 'Sains', name: 'Sains', icon: 'fa-flask', color: 'text-purple-400' }
-                    ];
-                } else {
-                    subjectsList = [
-                        { key: 'BT', name: 'தமிழ்மொழி (Tamil)', icon: 'fa-om', color: 'text-emerald-400' },
-                        { key: 'Matematik', name: 'Matematik', icon: 'fa-calculator', color: 'text-blue-400' },
-                        { key: 'BM', name: 'Bahasa Melayu', icon: 'fa-language', color: 'text-amber-400' },
-                        { key: 'English', name: 'English', icon: 'fa-font', color: 'text-sky-400' }
-                    ];
-                }
-
-                if (!subjectsList.some(s => s.key === this.subject)) {
-                    this.subject = subjectsList[0].key;
-                }
-
-                subjectsList.forEach((sub) => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.id = `sub-btn-${sub.key}`;
-                    btn.onclick = () => this.selectSubject(sub.key);
-                    const isSel = (this.subject === sub.key);
-
-                    btn.className = `p-4 rounded-2xl border-2 text-left transition flex flex-col justify-between ${
-                        isSel ? 'border-yellow-400 bg-yellow-500/10' : 'border-slate-700 bg-slate-800/60 hover:border-slate-600'
-                    }`;
-                    btn.innerHTML = `
-                        <i class="fa-solid ${sub.icon} ${sub.color} text-2xl mb-2"></i>
-                        <span class="font-bold text-white text-sm">${sub.name}</span>
-                    `;
-                    subjectGrid.appendChild(btn);
-                });
-
-                this.renderUnits();
-            }
-
-            selectSubject(key) {
-                this.subject = key;
-                this.unitId = 'all'; // Reset to comprehensive when subject changes
-                this.renderSubjects();
-            }
-
-            renderUnits() {
-                const unitGrid = document.getElementById('unitGrid');
-                if (!unitGrid) return;
-                unitGrid.innerHTML = '';
-
-                const units = UNITS_DATABASE[this.subject] || UNITS_DATABASE['BC'];
-
-                units.forEach((u) => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.onclick = () => this.selectUnit(u.id);
-                    const isSel = (this.unitId === u.id);
-                    const unitName = u[this.lang] || u['zh'];
-
-                    btn.className = `p-3.5 rounded-xl border-2 text-left transition flex items-center space-x-3 ${
-                        isSel 
-                            ? 'border-yellow-400 bg-yellow-500/20 text-yellow-300 font-bold' 
-                            : 'border-slate-700 bg-slate-800/60 text-slate-300 hover:border-slate-600'
-                    }`;
-
-                    const isComp = u.id === 'all';
-                    btn.innerHTML = `
-                        <div class="w-8 h-8 rounded-lg ${isComp ? 'bg-amber-500/30 text-amber-400' : 'bg-indigo-500/20 text-indigo-300'} flex items-center justify-center shrink-0">
-                            <i class="fa-solid ${isComp ? 'fa-globe' : 'fa-book'} text-sm"></i>
-                        </div>
-                        <span class="text-xs md:text-sm font-semibold">${unitName}</span>
-                    `;
-                    unitGrid.appendChild(btn);
-                });
-            }
-
-            selectUnit(uid) {
-                this.unitId = uid;
-                this.renderUnits();
-            }
-
-            selectMode(m) {
-                this.mode = m;
-                ['adventure', 'timeattack', 'ai'].forEach(modeKey => {
-                    const card = document.getElementById(`mode-${modeKey}`);
-                    if (card) {
-                        if (modeKey === m) {
-                            card.className = 'mode-card p-4 rounded-2xl border-2 border-amber-500 bg-amber-500/10 cursor-pointer hover:bg-amber-500/20 transition';
-                        } else {
-                            card.className = 'mode-card p-4 rounded-2xl border-2 border-slate-700 bg-slate-800/60 cursor-pointer hover:bg-slate-700 transition';
-                        }
-                    }
-                });
-            }
-
-            getSelectedUnitName() {
-                const units = UNITS_DATABASE[this.subject] || UNITS_DATABASE['BC'];
-                const found = units.find(u => u.id === this.unitId);
-                return found ? (found[this.lang] || found['zh']) : 'Comprehensive';
-            }
-
-            async startGame() {
-                this.score = 0;
-                this.currentQuestionIdx = 0;
-                this.lives = 3;
-                this.timeLeft = 60;
-
-                document.getElementById('step2-subject').classList.add('hidden');
-                document.getElementById('step4-result').classList.add('hidden');
-                document.getElementById('step3-game').classList.remove('hidden');
-                document.getElementById('topStatsBar').classList.remove('hidden');
-
-                const suffix = I18N[this.lang]?.gradeSuffix || 'Std';
-                document.getElementById('heroMiniAvatar').innerText = this.avatar;
-                document.getElementById('heroBattleSprite').innerText = this.avatar;
-                document.getElementById('heroNameLabel').innerText = this.avatarName;
-                document.getElementById('monsterNameLabel').innerText = I18N[this.lang]?.monsterName || 'UASA Quiz Monster';
-                document.getElementById('currentSubjectTag').innerText = `${this.subject} • ${this.getSelectedUnitName()}`;
-
-                this.updateLivesDisplay();
-
-                const monsterArea = document.getElementById('monsterBattleArea');
-                const timerContainer = document.getElementById('timerContainer');
-
-                if (this.mode === 'timeattack') {
-                    monsterArea.classList.add('hidden');
-                    timerContainer.classList.remove('hidden');
-                    this.startTimer();
-                } else {
-                    monsterArea.classList.remove('hidden');
-                    timerContainer.classList.add('hidden');
-                }
-
-                if (this.mode === 'ai') {
-                    await this.fetchAIQuestions();
-                } else {
-                    this.loadPresetQuestions();
-                }
-
-                this.renderCurrentQuestion();
-            }
-
-            loadPresetQuestions() {
-                let fallbackKey = Object.keys(FALLBACK_SUBJECT_QUESTIONS).find(k => k === this.subject) || 'BC';
-                let qs = FALLBACK_SUBJECT_QUESTIONS[fallbackKey] || FALLBACK_SUBJECT_QUESTIONS['BC'];
-                this.questions = qs;
-            }
-
-            async fetchAIQuestions() {
-                document.getElementById('aiLoadingOverlay').classList.remove('hidden');
-                document.getElementById('questionDisplayCard').classList.add('hidden');
-                document.getElementById('optionsContainer').classList.add('hidden');
-
-                const langName = this.lang === 'ms' ? 'Bahasa Melayu' : (this.lang === 'en' ? 'English' : '华文');
-                const unitText = this.getSelectedUnitName();
-
-                const systemPrompt = `You are an expert Malaysian primary school teacher specializing in UASA (Ujian Akhir Sesi Akademik) & KSSR Semakan. Generate 4 multiple-choice questions for ${this.school} stream, Standard ${this.grade}, in Subject ${this.subject}, specifically focusing on Scope/Topic: "${unitText}". Language: ${langName}.`;
-                const userPrompt = `Return a JSON array with 4 question objects. Each object has: "q" (question string), "opts" (array of 4 distinct option strings), "ans" (correct index 0-3), "exp" (clear explanation string in ${langName}).`;
-
-                try {
-                    const apiKey = "";
-                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-                    const payload = {
-                        contents: [{ parts: [{ text: userPrompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] },
-                        generationConfig: {
-                            responseMimeType: "application/json",
-                            responseSchema: {
-                                type: "ARRAY",
-                                items: {
-                                    type: "OBJECT",
-                                    properties: {
-                                        "q": { "type": "STRING" },
-                                        "opts": { "type": "ARRAY", "items": { "type": "STRING" } },
-                                        "ans": { "type": "INTEGER" },
-                                        "exp": { "type": "STRING" }
-                                    },
-                                    required: ["q", "opts", "ans", "exp"]
-                                }
-                            }
-                        }
+        function initGradeOptions() {
+            var container = document.getElementById('grade-options');
+            container.innerHTML = '';
+            for (var g = 1; g <= 6; g++) {
+                (function(gradeNum) {
+                    var btn = document.createElement('button');
+                    var isSelected = (gradeNum === selectedGrade);
+                    btn.className = 'grade-btn btn-bounce p-3 rounded-2xl border-2 font-extrabold text-xs md:text-sm text-center shadow-sm ' + 
+                        (isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300');
+                    btn.innerText = i18n[currentLang].gradePrefix + ' ' + gradeNum;
+                    btn.onclick = function() {
+                        selectedGrade = gradeNum;
+                        initGradeOptions();
+                        renderSubjects();
+                        updateUnitDropdown();
                     };
-
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    const data = await response.json();
-                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) {
-                        this.questions = JSON.parse(textResult);
-                    } else {
-                        throw new Error("Invalid response format");
-                    }
-                } catch (err) {
-                    console.warn("AI generation fallback to preset:", err);
-                    this.loadPresetQuestions();
-                } finally {
-                    document.getElementById('aiLoadingOverlay').classList.add('hidden');
-                    document.getElementById('questionDisplayCard').classList.remove('hidden');
-                    document.getElementById('optionsContainer').classList.remove('hidden');
-                }
-            }
-
-            renderCurrentQuestion() {
-                if (this.currentQuestionIdx >= this.questions.length) {
-                    this.endGame(true);
-                    return;
-                }
-
-                const currentQ = this.questions[this.currentQuestionIdx];
-                const qLabel = this.lang === 'ms' ? 'Soalan' : (this.lang === 'en' ? 'Question' : '第');
-                const qSuffix = this.lang === 'zh' ? '题' : '';
-
-                document.getElementById('levelStageLabel').innerText = `${qLabel} ${this.currentQuestionIdx + 1} / ${this.questions.length} ${qSuffix}`;
-                document.getElementById('qCategoryHeader').innerText = `${this.getSelectedUnitName()} • ${this.school} STD ${this.grade}`;
-                document.getElementById('questionText').innerText = currentQ.q;
-
-                const hpPercent = 100 - (this.currentQuestionIdx / this.questions.length) * 100;
-                document.getElementById('monsterHpBar').style.width = `${hpPercent}%`;
-
-                document.getElementById('explanationBox').classList.add('hidden');
-
-                const optsContainer = document.getElementById('optionsContainer');
-                optsContainer.innerHTML = '';
-
-                const optionPrefixes = ['A', 'B', 'C', 'D'];
-                currentQ.opts.forEach((optText, idx) => {
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.onclick = (e) => this.checkAnswer(idx, e);
-                    btn.className = `option-btn p-4 rounded-2xl border-2 border-slate-700 bg-slate-800 hover:border-amber-400 hover:bg-slate-700 transition font-semibold text-white text-left flex items-center space-x-3 active:scale-98`;
-                    btn.innerHTML = `
-                        <span class="w-8 h-8 rounded-xl bg-slate-700 border border-slate-600 flex items-center justify-center font-bold text-amber-400 text-sm shrink-0">${optionPrefixes[idx]}</span>
-                        <span class="text-sm md:text-base">${optText}</span>
-                    `;
-                    optsContainer.appendChild(btn);
-                });
-            }
-
-            checkAnswer(selectedIndex, event) {
-                const currentQ = this.questions[this.currentQuestionIdx];
-                const buttons = document.querySelectorAll('.option-btn');
-                
-                buttons.forEach(btn => btn.disabled = true);
-
-                if (selectedIndex === currentQ.ans) {
-                    audioManager.playCorrect();
-                    buttons[selectedIndex].classList.add('border-emerald-500', 'bg-emerald-500/20');
-                    this.score += 100;
-                    document.getElementById('playerScore').innerText = this.score;
-
-                    if (event && event.clientX) {
-                        fxSystem.burst(event.clientX, event.clientY, 30);
-                    } else {
-                        fxSystem.burst(window.innerWidth / 2, window.innerHeight / 2, 40);
-                    }
-
-                    const monster = document.getElementById('monsterSprite');
-                    if (monster) {
-                        monster.classList.add('animate-ping');
-                        setTimeout(() => monster.classList.remove('animate-ping'), 500);
-                    }
-                } else {
-                    audioManager.playWrong();
-                    buttons[selectedIndex].classList.add('border-red-500', 'bg-red-500/20');
-                    buttons[currentQ.ans].classList.add('border-emerald-500', 'bg-emerald-500/20');
-
-                    this.lives--;
-                    this.updateLivesDisplay();
-
-                    if (this.lives <= 0 && this.mode !== 'timeattack') {
-                        setTimeout(() => this.endGame(false), 1200);
-                        return;
-                    }
-                }
-
-                document.getElementById('explanationText').innerText = currentQ.exp || "UASA standard explanation.";
-                document.getElementById('explanationBox').classList.remove('hidden');
-            }
-
-            nextQuestion() {
-                this.currentQuestionIdx++;
-                this.renderCurrentQuestion();
-            }
-
-            updateLivesDisplay() {
-                const container = document.getElementById('livesContainer');
-                container.innerHTML = '';
-                for (let i = 0; i < 3; i++) {
-                    const heart = document.createElement('i');
-                    if (i < this.lives) {
-                        heart.className = 'fa-solid fa-heart text-red-500 text-base md:text-lg mr-0.5';
-                    } else {
-                        heart.className = 'fa-regular fa-heart text-slate-600 text-base md:text-lg mr-0.5';
-                    }
-                    container.appendChild(heart);
-                }
-            }
-
-            startTimer() {
-                clearInterval(this.timerInterval);
-                this.timerInterval = setInterval(() => {
-                    this.timeLeft--;
-                    document.getElementById('gameTimer').innerText = `${this.timeLeft}s`;
-                    if (this.timeLeft <= 0) {
-                        clearInterval(this.timerInterval);
-                        this.endGame(true);
-                    }
-                }, 1000);
-            }
-
-            endGame(isVictory) {
-                clearInterval(this.timerInterval);
-                document.getElementById('step3-game').classList.add('hidden');
-                document.getElementById('step4-result').classList.remove('hidden');
-
-                const dict = I18N[this.lang] || I18N['zh'];
-
-                if (isVictory) {
-                    audioManager.playVictory();
-                    fxSystem.burst(window.innerWidth / 2, window.innerHeight / 3, 70);
-                    document.getElementById('resultTitle').innerText = dict.resVictoryTitle;
-                    document.getElementById('resultSubtitle').innerText = dict.resVictorySub;
-                    this.stars += 3;
-                } else {
-                    document.getElementById('resultTitle').innerText = dict.resDefeatTitle;
-                    document.getElementById('resultSubtitle').innerText = dict.resDefeatSub;
-                    this.stars += 1;
-                }
-
-                document.getElementById('playerStars').innerText = this.stars;
-                document.getElementById('finalStars').innerText = `+${isVictory ? 3 : 1}`;
-                document.getElementById('finalScore').innerText = this.score;
-                
-                const accuracy = this.questions.length > 0 
-                    ? Math.round((this.score / (this.questions.length * 100)) * 100) 
-                    : 0;
-                document.getElementById('finalAccuracy').innerText = `${Math.min(100, accuracy)}%`;
-
-                let tpBand = "TP 6 (Cemerlang)";
-                if (accuracy < 40) tpBand = "TP 1 - TP 2 (Mencapai Tahap Minimal)";
-                else if (accuracy < 60) tpBand = "TP 3 (Memuaskan)";
-                else if (accuracy < 80) tpBand = "TP 4 (Baik)";
-                else if (accuracy < 90) tpBand = "TP 5 (Sangat Baik)";
-
-                document.getElementById('tpBandValue').innerText = tpBand;
-            }
-
-            resetToHome() {
-                clearInterval(this.timerInterval);
-                document.getElementById('step3-game').classList.add('hidden');
-                document.getElementById('step4-result').classList.add('hidden');
-                document.getElementById('step2-subject').classList.add('hidden');
-                document.getElementById('step1-setup').classList.add('hidden');
-                document.getElementById('step0-language').classList.remove('hidden');
+                    container.appendChild(btn);
+                })(g);
             }
         }
 
-        // INITIALIZE APP
-        let game;
+        function renderSubjects() {
+            var container = document.getElementById('subject-options');
+            container.innerHTML = '';
+
+            var allSubjects = [
+                { id: 'sejarah', minGrade: 4, icon: 'fa-landmark' },
+                { id: 'sn', minGrade: 1, icon: 'fa-flask' },
+                { id: 'math', minGrade: 1, icon: 'fa-calculator' },
+                { id: 'bc', minGrade: 1, icon: 'fa-font' },
+                { id: 'bm', minGrade: 1, icon: 'fa-language' },
+                { id: 'bi', minGrade: 1, icon: 'fa-comments' },
+                { id: 'bt', minGrade: 1, streamOnly: 'SJKT', icon: 'fa-om' }
+            ];
+
+            var available = [];
+            for (var i = 0; i < allSubjects.length; i++) {
+                var item = allSubjects[i];
+                if (selectedGrade >= item.minGrade) {
+                    if (!item.streamOnly || selectedStream === item.streamOnly) {
+                        available.push(item);
+                    }
+                }
+            }
+
+            // Ensure selectedSubject is valid for current grade
+            var isCurrentValid = available.some(function(s) { return s.id === selectedSubject; });
+            if (!isCurrentValid && available.length > 0) {
+                selectedSubject = available[0].id;
+            }
+
+            for (var j = 0; j < available.length; j++) {
+                (function(subj) {
+                    var isSelected = (selectedSubject === subj.id);
+                    var btn = document.createElement('button');
+                    btn.className = 'subject-btn btn-bounce p-3.5 rounded-2xl border-2 font-bold text-left flex items-center gap-2.5 shadow-sm ' + 
+                        (isSelected ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300');
+                    
+                    var label = i18n[currentLang].subjects[subj.id] || subj.id;
+                    btn.innerHTML = '<i class="fa-solid ' + subj.icon + ' text-indigo-500 text-base"></i><span class="text-xs md:text-sm">' + label + '</span>';
+                    btn.onclick = function() {
+                        selectedSubject = subj.id;
+                        renderSubjects();
+                        updateUnitDropdown();
+                    };
+                    container.appendChild(btn);
+                })(available[j]);
+            }
+        }
+
+        function setStream(stream) {
+            selectedStream = stream;
+            var btns = document.querySelectorAll('.stream-btn');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].className = 'stream-btn btn-bounce p-3 rounded-2xl border-2 font-bold text-xs md:text-sm text-center shadow-sm border-slate-200 bg-white text-slate-600 hover:border-slate-300';
+                if (btns[i].getAttribute('data-stream') === stream) {
+                    btns[i].className = 'stream-btn btn-bounce p-3 rounded-2xl border-2 font-bold text-xs md:text-sm text-center shadow-sm border-indigo-500 bg-indigo-50 text-indigo-700';
+                }
+            }
+            renderSubjects();
+            updateUnitDropdown();
+        }
+
+        function setPracticeType(type) {
+            practiceType = type;
+            var btnFull = document.getElementById('btn-mode-full');
+            var btnUnit = document.getElementById('btn-mode-unit');
+            var unitContainer = document.getElementById('unit-select-container');
+
+            if (type === 'full') {
+                btnFull.className = "practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-indigo-500 bg-indigo-50 font-bold text-indigo-700 text-sm flex items-center justify-center gap-2 shadow-sm";
+                btnUnit.className = "practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-600 hover:border-slate-300 text-sm flex items-center justify-center gap-2 shadow-sm";
+                unitContainer.classList.add('hidden');
+            } else {
+                btnUnit.className = "practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-indigo-500 bg-indigo-50 font-bold text-indigo-700 text-sm flex items-center justify-center gap-2 shadow-sm";
+                btnFull.className = "practice-type-btn btn-bounce p-3.5 rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-600 hover:border-slate-300 text-sm flex items-center justify-center gap-2 shadow-sm";
+                unitContainer.classList.remove('hidden');
+            }
+        }
+
+        function updateUnitDropdown() {
+            var select = document.getElementById('unit-select');
+            select.innerHTML = '<option value="all">' + i18n[currentLang].allUnits + '</option>';
+
+            if (unitData[selectedSubject] && unitData[selectedSubject][selectedGrade]) {
+                var units = unitData[selectedSubject][selectedGrade];
+                for (var i = 0; i < units.length; i++) {
+                    var opt = document.createElement('option');
+                    opt.value = units[i];
+                    opt.innerText = units[i];
+                    select.appendChild(opt);
+                }
+            }
+        }
+
+        function startGame() {
+            var bank = [];
+            if (questionBank[selectedSubject] && questionBank[selectedSubject][selectedGrade]) {
+                bank = questionBank[selectedSubject][selectedGrade];
+            } else {
+                // Generous fallback mechanism
+                bank = (questionBank['sejarah'] && questionBank['sejarah'][4]) ? questionBank['sejarah'][4] : [];
+            }
+
+            if (practiceType === 'unit') {
+                var chosenUnit = document.getElementById('unit-select').value;
+                if (chosenUnit !== 'all') {
+                    var filtered = bank.filter(function(q) { return q.unit === chosenUnit; });
+                    if (filtered.length > 0) bank = filtered;
+                }
+            }
+
+            currentQuestions = bank;
+            currentQuestionIdx = 0;
+            score = 0;
+            combo = 0;
+            correctAnswersCount = 0;
+
+            document.getElementById('screen-setup').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            var qData = currentQuestions[currentQuestionIdx];
+            var subjName = i18n[currentLang].subjects[selectedSubject] || selectedSubject;
+            
+            document.getElementById('quiz-info-badge').innerText = selectedStream + ' • ' + i18n[currentLang].gradePrefix + ' ' + selectedGrade + ' • ' + subjName;
+            document.getElementById('question-unit-tag').innerText = qData.unit || 'UASA KSSR';
+            
+            var qText = qData.q[currentLang] || qData.q.en || qData.q.zh;
+            document.getElementById('question-text').innerText = (currentQuestionIdx + 1) + '. ' + qText;
+            
+            document.getElementById('score-val').innerText = score;
+            document.getElementById('combo-val').innerText = combo + ' Combo';
+
+            var total = currentQuestions.length;
+            var currentNum = currentQuestionIdx + 1;
+            var countTemplate = i18n[currentLang].questionCount || "Question {current} of {total}";
+            document.getElementById('question-count-lbl').innerText = countTemplate.replace('{current}', currentNum).replace('{total}', total);
+
+            var pct = Math.round((currentNum / total) * 100);
+            document.getElementById('progress-bar').style.width = pct + '%';
+            document.getElementById('progress-pct').innerText = pct + '%';
+
+            var container = document.getElementById('options-container');
+            container.innerHTML = '';
+            document.getElementById('explanation-box').classList.add('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+
+            for (var idx = 0; idx < qData.options.length; idx++) {
+                (function(optIdx) {
+                    var btn = document.createElement('button');
+                    btn.className = 'option-btn btn-bounce w-full p-4 text-left rounded-2xl border-2 border-slate-200 bg-white font-bold text-slate-700 hover:border-indigo-300 text-sm md:text-base transition-all shadow-sm flex justify-between items-center';
+                    
+                    var optObj = qData.options[optIdx];
+                    var optText = optObj[currentLang] || optObj.en || optObj.zh;
+                    
+                    btn.innerHTML = '<span>' + optText + '</span><i class="fa-regular fa-circle text-slate-300 text-lg opt-icon"></i>';
+                    btn.onclick = function() { checkAnswer(optIdx, qData.ans); };
+                    container.appendChild(btn);
+                })(idx);
+            }
+        }
+
+        function checkAnswer(selectedIdx, correctIdx) {
+            var btns = document.querySelectorAll('.option-btn');
+            for (var i = 0; i < btns.length; i++) {
+                btns[i].disabled = true;
+            }
+
+            var qData = currentQuestions[currentQuestionIdx];
+
+            if (selectedIdx === correctIdx) {
+                btns[selectedIdx].className = 'option-btn w-full p-4 text-left rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-bold text-emerald-800 text-sm md:text-base shadow-sm flex justify-between items-center';
+                btns[selectedIdx].querySelector('.opt-icon').className = 'fa-solid fa-circle-check text-emerald-500 text-lg';
+                
+                score += 10 + (combo * 2);
+                combo++;
+                correctAnswersCount++;
+            } else {
+                btns[selectedIdx].className = 'option-btn w-full p-4 text-left rounded-2xl border-2 border-rose-500 bg-rose-50 font-bold text-rose-800 text-sm md:text-base shadow-sm flex justify-between items-center';
+                btns[selectedIdx].querySelector('.opt-icon').className = 'fa-solid fa-circle-xmark text-rose-500 text-lg';
+
+                btns[correctIdx].className = 'option-btn w-full p-4 text-left rounded-2xl border-2 border-emerald-500 bg-emerald-50 font-bold text-emerald-800 text-sm md:text-base shadow-sm flex justify-between items-center';
+                btns[correctIdx].querySelector('.opt-icon').className = 'fa-solid fa-circle-check text-emerald-500 text-lg';
+                
+                combo = 0;
+            }
+
+            document.getElementById('score-val').innerText = score;
+            document.getElementById('combo-val').innerText = combo + ' Combo';
+
+            var expText = qData.explain[currentLang] || qData.explain.en || qData.explain.zh;
+            document.getElementById('explanation-text').innerText = expText;
+            document.getElementById('explanation-box').classList.remove('hidden');
+            document.getElementById('btn-next').classList.remove('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIdx++;
+            if (currentQuestionIdx < currentQuestions.length) {
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            var total = currentQuestions.length;
+            var accuracy = Math.round((correctAnswersCount / total) * 100);
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-accuracy').innerText = accuracy + '%';
+
+            var tp = "TP 6";
+            var desc = "Excellent Mastery (Cemerlang / 掌握程度极佳)";
+
+            if (accuracy < 40) {
+                tp = "TP 1";
+                desc = "Needs Improvement (Sangat Terhad / 尚未掌握)";
+            } else if (accuracy < 60) {
+                tp = "TP 2";
+                desc = "Basic Mastery (Terhad / 基础掌握)";
+            } else if (accuracy < 75) {
+                tp = "TP 3";
+                desc = "Satisfactory (Memuaskan / 满意)";
+            } else if (accuracy < 85) {
+                tp = "TP 4";
+                desc = "Good Mastery (Baik / 良好)";
+            } else if (accuracy < 95) {
+                tp = "TP 5";
+                desc = "Very Good (Sangat Baik / 优良)";
+            }
+
+            document.getElementById('tp-level').innerText = tp;
+            document.getElementById('tp-desc').innerText = desc;
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 120,
+                    spread: 80,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        function resetToSetup() {
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-lang-init').classList.add('hidden');
+            document.getElementById('screen-setup').classList.remove('hidden');
+        }
+
+        /* INITIALIZATION ON WINDOW LOAD */
         window.onload = function() {
-            fxSystem = new ParticleSystem();
-            game = new GameEngine();
-            game.init();
+            initGradeOptions();
+            renderSubjects();
         };
     </script>
 </body>
